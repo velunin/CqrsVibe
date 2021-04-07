@@ -84,7 +84,7 @@ namespace CqrsVibe.Tests
         private class SomeQueryHandler : IQueryHandler<SomeQuery, string>
         {
             public Task<string> HandleAsync(
-                IQueryContext<SomeQuery> context, 
+                IQueryHandlingContext<SomeQuery> context, 
                 CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(context.Query.SomeProperty);

@@ -7,7 +7,7 @@ namespace CqrsVibe.Commands
     {
         Task ProcessAsync(ICommand command, CancellationToken cancellationToken = default);
 
-        Task<TResult> ProcessAsync<TResult>(IResultingCommand<TResult> command,
+        Task<TResult> ProcessAsync<TResult>(ICommand<TResult> command,
             CancellationToken cancellationToken = default);
     }
 }

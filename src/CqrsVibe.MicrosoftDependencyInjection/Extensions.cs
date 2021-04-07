@@ -14,7 +14,7 @@ namespace Cqrs.MicrosoftDependencyInjection
     {
         public static IServiceCollection AddCqrsVibe<TResolver>(
             this IServiceCollection services, 
-            Action<IPipeConfigurator<ICommandContext>> configureCommands = null) 
+            Action<IPipeConfigurator<ICommandHandlingContext>> configureCommands = null) 
             where TResolver : class, IHandlerResolver
         {
             services.AddSingleton<ICommandProcessor>(provider =>

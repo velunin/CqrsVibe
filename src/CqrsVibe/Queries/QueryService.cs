@@ -11,25 +11,25 @@ namespace CqrsVibe.Queries
 {
     public class QueryService : IQueryService
     {
-        private readonly IPipe<QueryContext> _queryPipe;
+        private readonly IPipe<QueryHandlingContext> _queryPipe;
         
         private readonly ConcurrentDictionary<Type, Type> _queryHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
         public QueryService(
             IHandlerResolver handlerResolver,
-            Action<IPipeConfigurator<IQueryContext>> configurePipeline = null)
+            Action<IPipeConfigurator<IQueryHandlingContext>> configurePipeline = null)
         {
             if (handlerResolver == null)
             {
                 throw new ArgumentNullException(nameof(handlerResolver));
             }
             
-            _queryPipe = Pipe.New<IQueryContext>(pipeConfigurator =>
+            _queryPipe = Pipe.New<IQueryHandlingContext>(pipeConfigurator =>
             {
                 configurePipeline?.Invoke(pipeConfigurator);
                 
-                pipeConfigurator.AddPipeSpecification(new ExecuteQuerySpecification(handlerResolver));
+                pipeConfigurator.AddPipeSpecification(new HandleQuerySpecification(handlerResolver));
             });
         }
 
@@ -66,11 +66,11 @@ namespace CqrsVibe.Queries
         
         internal static class QueryContextFactory
         {
-            private static readonly ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryContext>>
+            private static readonly ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryHandlingContext>>
                 ContextConstructorInvokers =
-                    new ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryContext>>();
+                    new ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryHandlingContext>>();
             
-            public static QueryContext Create(
+            public static QueryHandlingContext Create(
                 IQuery query, 
                 Type handlerType,
                 CancellationToken cancellationToken)
@@ -86,9 +86,9 @@ namespace CqrsVibe.Queries
                 return contextConstructorInvoker(query, handlerType, cancellationToken);
             }
 
-            private static Func<IQuery,Type,CancellationToken,QueryContext> CreateContextConstructorInvoker(Type queryType)
+            private static Func<IQuery,Type,CancellationToken,QueryHandlingContext> CreateContextConstructorInvoker(Type queryType)
             {
-                var contextType = typeof(QueryContext<>).MakeGenericType(queryType);
+                var contextType = typeof(QueryHandlingContext<>).MakeGenericType(queryType);
                 var contextConstructorInfo = contextType.GetConstructor(
                     BindingFlags.Public | BindingFlags.Instance,
                     null,
@@ -96,18 +96,18 @@ namespace CqrsVibe.Queries
                     null);
                 
                 var queryParameter = Expression.Parameter(typeof(IQuery), "query");
-                var handlerFactoryParameter = Expression.Parameter(typeof(Type), "handlerType");
+                var handlerParameter = Expression.Parameter(typeof(Type), "handler");
                 var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var concreteQueryInstance = Expression.Variable(queryType, "concreteQuery");
 
                 var block = Expression.Block(new[] {concreteQueryInstance},
                     Expression.Assign(concreteQueryInstance, Expression.Convert(queryParameter, queryType)),
-                    Expression.New(contextConstructorInfo!, concreteQueryInstance, handlerFactoryParameter, cancellationTokenParameter));
+                    Expression.New(contextConstructorInfo!, concreteQueryInstance, handlerParameter, cancellationTokenParameter));
 
                 var constructorInvoker =
-                    Expression.Lambda<Func<IQuery, Type, CancellationToken, QueryContext>>(
-                        block, queryParameter, handlerFactoryParameter, cancellationTokenParameter);
+                    Expression.Lambda<Func<IQuery, Type, CancellationToken, QueryHandlingContext>>(
+                        block, queryParameter, handlerParameter, cancellationTokenParameter);
 
                 return constructorInvoker.Compile();
             }

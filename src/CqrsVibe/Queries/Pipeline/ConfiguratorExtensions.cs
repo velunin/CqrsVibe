@@ -8,8 +8,8 @@ namespace CqrsVibe.Queries.Pipeline
     public static class ConfiguratorExtensions
     {
         public static void UseForQuery<TQuery>(
-            this IPipeConfigurator<IQueryContext> configurator, 
-            Action<IPipeConfigurator<IQueryContext<TQuery>>> configure) 
+            this IPipeConfigurator<IQueryHandlingContext> configurator, 
+            Action<IPipeConfigurator<IQueryHandlingContext<TQuery>>> configure) 
             where TQuery : IQuery
         {
             if (configure == null)
@@ -23,9 +23,9 @@ namespace CqrsVibe.Queries.Pipeline
         }
         
         public static void UseForQueries(
-            this IPipeConfigurator<IQueryContext> configurator, 
+            this IPipeConfigurator<IQueryHandlingContext> configurator, 
             Func<IQuery, bool> predicate, 
-            Action<IPipeConfigurator<IQueryContext>> configure) 
+            Action<IPipeConfigurator<IQueryHandlingContext>> configure) 
         {
             if (predicate == null)
             {
@@ -43,9 +43,9 @@ namespace CqrsVibe.Queries.Pipeline
         }
         
         public static void UseForQueries(
-            this IPipeConfigurator<IQueryContext> configurator, 
+            this IPipeConfigurator<IQueryHandlingContext> configurator, 
             HashSet<Type> queryTypes, 
-            Action<IPipeConfigurator<IQueryContext>> configure) 
+            Action<IPipeConfigurator<IQueryHandlingContext>> configure) 
         {
             if (queryTypes == null)
             {
@@ -63,9 +63,9 @@ namespace CqrsVibe.Queries.Pipeline
         }
         
         public static void UseForQueries(
-            this IPipeConfigurator<IQueryContext> configurator, 
+            this IPipeConfigurator<IQueryHandlingContext> configurator, 
             IEnumerable<Type> queryTypes, 
-            Action<IPipeConfigurator<IQueryContext>> configure) 
+            Action<IPipeConfigurator<IQueryHandlingContext>> configure) 
         {
             UseForQueries(configurator, queryTypes.ToHashSet(), configure);
         }

@@ -24,9 +24,9 @@ namespace CqrsVibe.Tests
         public async Task Should_process_command_with_result()
         {
             const string expectedResult = "test";
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeResultingCommandHandler()));
+            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandWithResultHandler()));
 
-            var result = await processor.ProcessAsync(new SomeResultingCommand(expectedResult));
+            var result = await processor.ProcessAsync(new SomeCommandWithResult(expectedResult));
            
             Assert.AreEqual(expectedResult, result);
         }
@@ -87,15 +87,17 @@ namespace CqrsVibe.Tests
     
         private class SomeCommandHandler : ICommandHandler<SomeCommand>
         {
-            public Task HandleAsync(ICommandContext<SomeCommand> context, CancellationToken cancellationToken = default)
+            public Task HandleAsync(
+                ICommandHandlingContext<SomeCommand> context, 
+                CancellationToken cancellationToken = default)
             {
                 return Task.CompletedTask;
             }
         }
     
-        private class SomeResultingCommand : IResultingCommand<string>
+        private class SomeCommandWithResult : ICommand<string>
         {
-            public SomeResultingCommand(string someProperty)
+            public SomeCommandWithResult(string someProperty)
             {
                 SomeProperty = someProperty;
             }
@@ -103,9 +105,11 @@ namespace CqrsVibe.Tests
             public string SomeProperty { get; }
         }
     
-        private class SomeResultingCommandHandler : ICommandHandler<SomeResultingCommand, string>
+        private class SomeCommandWithResultHandler : ICommandHandler<SomeCommandWithResult, string>
         {
-            public Task<string> HandleAsync(ICommandContext<SomeResultingCommand> context, CancellationToken cancellationToken = default)
+            public Task<string> HandleAsync(
+                ICommandHandlingContext<SomeCommandWithResult> context, 
+                CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(context.Command.SomeProperty);
             }

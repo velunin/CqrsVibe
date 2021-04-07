@@ -8,13 +8,13 @@ namespace CqrsVibe
     {
         private readonly Func<object, TContext, CancellationToken, Task> _invoker;
         
-        public HandlerInvoker(Type handlerType, Func<object, TContext, CancellationToken, Task> invoker)
+        public HandlerInvoker(Type handlerInterface, Func<object, TContext, CancellationToken, Task> invoker)
         {
-            HandlerType = handlerType;
+            HandlerInterface = handlerInterface;
             _invoker = invoker;
         }
 
-        public Type HandlerType { get; }
+        public Type HandlerInterface { get; }
 
         public Task HandleAsync(object handlerInstance, TContext context, CancellationToken cancellationToken) =>
             _invoker(handlerInstance, context, cancellationToken);

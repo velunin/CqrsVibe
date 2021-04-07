@@ -29,26 +29,26 @@ namespace CqrsVibe
 
         private static HandlerInvoker<TContext> CreateHandlerInvoker(
             Type contextType,
-            Type handlerType)
+            Type handlerInterface)
         {
-            var handleMethod = handlerType.GetMethod("HandleAsync", BindingFlags.Instance | BindingFlags.Public);
+            var handleMethod = handlerInterface.GetMethod("HandleAsync", BindingFlags.Instance | BindingFlags.Public);
             if (handleMethod == null)
             {
-                throw new InvalidOperationException($"{handlerType.FullName} does not contain a 'HandleAsync' method");
+                throw new InvalidOperationException($"{handlerInterface.FullName} does not contain a 'HandleAsync' method");
             }
 
             var lambdaHandlerParameter = Expression.Parameter(typeof(object));
             var lambdaContextParameter = Expression.Parameter(typeof(TContext));
             var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken));
 
-            var handlerInstance = Expression.Variable(handlerType, "handler");
+            var handlerInstance = Expression.Variable(handlerInterface, "handler");
             var concreteContext = Expression.Variable(contextType, "context");
 
             var block = Expression.Block(
                 new[] {handlerInstance, concreteContext},
                 Expression.Assign(
                     handlerInstance,
-                    Expression.Convert(lambdaHandlerParameter, handlerType)),
+                    Expression.Convert(lambdaHandlerParameter, handlerInterface)),
                 Expression.Assign(
                     concreteContext,
                     Expression.Convert(lambdaContextParameter, contextType)),
@@ -65,7 +65,7 @@ namespace CqrsVibe
                     lambdaContextParameter,
                     cancellationTokenParameter);
 
-            return new HandlerInvoker<TContext>(handlerType, lambda.Compile());
+            return new HandlerInvoker<TContext>(handlerInterface, lambda.Compile());
         }
     }
 }

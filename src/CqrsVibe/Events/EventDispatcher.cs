@@ -5,23 +5,34 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using CqrsVibe.Events.Pipeline;
+using GreenPipes;
 
 namespace CqrsVibe.Events
 {
     public class EventDispatcher : IEventDispatcher
     {
-        private readonly IHandlerResolver _handlerResolver;
+        private readonly IPipe<EventHandlingContext> _eventHandlePipe;
 
-        private readonly ConcurrentDictionary<Type, (Type, Func<object, object, CancellationToken, Task>)>
-            _eventHandlersInvokers =
-                new ConcurrentDictionary<Type, (Type, Func<object, object, CancellationToken, Task>)>();
+        private readonly ConcurrentDictionary<Type, Type> _eventHandlerTypesCache =
+            new ConcurrentDictionary<Type, Type>();
 
-        public EventDispatcher(IHandlerResolver handlerResolver)
+        public EventDispatcher(IHandlerResolver handlerResolver, Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
         {
-            _handlerResolver = handlerResolver ?? throw new ArgumentNullException(nameof(handlerResolver));
+            if (handlerResolver == null)
+            {
+                throw new ArgumentNullException(nameof(handlerResolver));
+            }
+            
+            _eventHandlePipe = Pipe.New<IEventHandlingContext>(pipeConfigurator =>
+            {
+                configurePipeline?.Invoke(pipeConfigurator);
+                
+                pipeConfigurator.AddPipeSpecification(new HandleEventSpecification(handlerResolver));
+            });
         }
 
-        public async Task DispatchAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default(CancellationToken))
+        public Task DispatchAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
         {
             if (@event == null)
             {
@@ -29,63 +40,65 @@ namespace CqrsVibe.Events
             }
 
             var eventType = @event.GetType();
+            
+            if (!_eventHandlerTypesCache.TryGetValue(eventType, out var eventHandlerType))
+            {
+                eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
+                _eventHandlerTypesCache.TryAdd(eventType, eventHandlerType);
+            }
 
-            var (eventHandlerType, handleInvoker) = _eventHandlersInvokers.GetOrAdd(eventType, CreateHandlerInvoker);
+            var context = EventContextFactory.Create(@event, eventHandlerType, cancellationToken);
 
-            var eventHandlers = _handlerResolver.ResolveHandlers(eventHandlerType);
-
-            var handlersTasks = eventHandlers?
-                                    .Select(eh => handleInvoker(eh, @event, cancellationToken))
-                                ?? Enumerable.Empty<Task>();
-
-            var tcs = new TaskCompletionSource<object>();
-            cancellationToken.Register(
-                () => tcs.TrySetCanceled(), 
-                false);
-
-            await Task.WhenAny(
-                    Task.WhenAll(handlersTasks),
-                    tcs.Task)
-                .ConfigureAwait(false);
+            return _eventHandlePipe.Send(context);
         }
 
-        private static (Type, Func<object, object, CancellationToken, Task>) CreateHandlerInvoker(Type eventType)
+        internal static class EventContextFactory
         {
-            var eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
+            private static readonly ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>
+                ContextConstructorInvokers =
+                    new ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>();
+                    
+            public static EventHandlingContext Create(
+                object @event, 
+                Type handlerInterface,
+                CancellationToken cancellationToken)
+            {
+                var eventType = @event.GetType();
 
-            var handleAsyncMethod =
-                eventHandlerType.GetMethod(
-                    "HandleAsync",
-                    BindingFlags.Instance | BindingFlags.Public);
+                if (!ContextConstructorInvokers.TryGetValue(eventType, out var contextConstructorInvoker))
+                {
+                    contextConstructorInvoker = CreateContextConstructorInvoker(eventType);
+                    ContextConstructorInvokers.TryAdd(eventType, contextConstructorInvoker);
+                }
 
-            var eventHandlerParameter = Expression.Parameter(typeof(object));
-            var eventParameter = Expression.Parameter(typeof(object));
-            var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken));
+                return contextConstructorInvoker(@event, handlerInterface, cancellationToken);
+            }
 
-            var eventHandlerVariable = Expression.Variable(eventHandlerType, "eventHandler");
-            var eventVariable = Expression.Variable(eventType, "@event");
+            private static Func<object,Type,CancellationToken,EventHandlingContext> CreateContextConstructorInvoker(Type eventType)
+            {
+                var contextType = typeof(EventHandlingContext<>).MakeGenericType(eventType);
+                var contextConstructorInfo = contextType.GetConstructor(
+                    BindingFlags.Public | BindingFlags.Instance,
+                    null,
+                    new[] {eventType, typeof(Type), typeof(CancellationToken)},
+                    null);
+                
+                var eventParameter = Expression.Parameter(typeof(object), "@event");
+                var handlerParameter = Expression.Parameter(typeof(Type), "handler");
+                var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
-            var block = Expression.Block(
-                new[] {eventHandlerVariable, eventVariable},
-                Expression.Assign(
-                    eventHandlerVariable, 
-                    Expression.Convert(eventHandlerParameter, eventHandlerType)), 
-                Expression.Assign(
-                    eventVariable, 
-                    Expression.Convert(eventParameter, eventType)),
-                Expression.Call(
-                    eventHandlerVariable, 
-                    handleAsyncMethod, 
-                    eventVariable, 
-                    cancellationTokenParameter));
+                var concreteEventInstance = Expression.Variable(eventType, "concreteEvent");
 
-            var lambda = Expression.Lambda<Func<object, object, CancellationToken, Task>>(
-                block, 
-                eventHandlerParameter,
-                eventParameter, 
-                cancellationTokenParameter);
+                var block = Expression.Block(new[] {concreteEventInstance},
+                    Expression.Assign(concreteEventInstance, Expression.Convert(eventParameter, eventType)),
+                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerParameter, cancellationTokenParameter));
 
-            return (eventHandlerType, lambda.Compile());
+                var constructorInvoker =
+                    Expression.Lambda<Func<object, Type, CancellationToken, EventHandlingContext>>(
+                        block, eventParameter, handlerParameter, cancellationTokenParameter);
+
+                return constructorInvoker.Compile();
+            }
         }
     }
 }

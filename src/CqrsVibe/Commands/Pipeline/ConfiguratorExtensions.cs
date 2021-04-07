@@ -8,8 +8,8 @@ namespace CqrsVibe.Commands.Pipeline
     public static class ConfiguratorExtensions
     {
         public static void UseForCommand<TCommand>(
-            this IPipeConfigurator<ICommandContext> configurator, 
-            Action<IPipeConfigurator<ICommandContext<TCommand>>> configure) 
+            this IPipeConfigurator<ICommandHandlingContext> configurator, 
+            Action<IPipeConfigurator<ICommandHandlingContext<TCommand>>> configure) 
             where TCommand : ICommand
         {
             if (configure == null)
@@ -23,9 +23,9 @@ namespace CqrsVibe.Commands.Pipeline
         }
         
         public static void UseForCommands(
-            this IPipeConfigurator<ICommandContext> configurator, 
+            this IPipeConfigurator<ICommandHandlingContext> configurator, 
             Func<ICommand, bool> predicate, 
-            Action<IPipeConfigurator<ICommandContext>> configure) 
+            Action<IPipeConfigurator<ICommandHandlingContext>> configure) 
         {
             if (predicate == null)
             {
@@ -43,9 +43,9 @@ namespace CqrsVibe.Commands.Pipeline
         }
         
         public static void UseForCommands(
-            this IPipeConfigurator<ICommandContext> configurator, 
+            this IPipeConfigurator<ICommandHandlingContext> configurator, 
             HashSet<Type> commandTypes, 
-            Action<IPipeConfigurator<ICommandContext>> configure) 
+            Action<IPipeConfigurator<ICommandHandlingContext>> configure) 
         {
             if (commandTypes == null)
             {
@@ -63,9 +63,9 @@ namespace CqrsVibe.Commands.Pipeline
         }
         
         public static void UseForCommands(
-            this IPipeConfigurator<ICommandContext> configurator, 
+            this IPipeConfigurator<ICommandHandlingContext> configurator, 
             IEnumerable<Type> commandTypes, 
-            Action<IPipeConfigurator<ICommandContext>> configure) 
+            Action<IPipeConfigurator<ICommandHandlingContext>> configure) 
         {
             UseForCommands(configurator, commandTypes.ToHashSet(), configure);
         }

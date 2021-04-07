@@ -1,8 +1,9 @@
 ﻿using System.Threading;
 using CqrsVibe.Commands;
-using CqrsVibe.Commands.Pipeline;
+using CqrsVibe.Events;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
+using GreenPipes.Contracts;
 using NUnit.Framework;
 
 namespace CqrsVibe.Tests
@@ -18,7 +19,7 @@ namespace CqrsVibe.Tests
                 typeof(ICommandHandler<>).MakeGenericType(typeof(SomeCommand)),
                 CancellationToken.None);
 
-            Assert.AreEqual(typeof(CommandContext<SomeCommand>), context.GetType());
+            Assert.AreEqual(typeof(Commands.Pipeline.CommandHandlingContext<SomeCommand>), context.GetType());
         }
         
         [Test]
@@ -29,7 +30,18 @@ namespace CqrsVibe.Tests
                 typeof(IQueryHandler<,>).MakeGenericType(typeof(SomeQuery), typeof(string)),
                 CancellationToken.None);
 
-            Assert.AreEqual(typeof(QueryContext<SomeQuery>), context.GetType());
+            Assert.AreEqual(typeof(QueryHandlingContext<SomeQuery>), context.GetType());
+        }
+        
+        [Test]
+        public void Should_create_specific_event_context()
+        {
+            var context = EventDispatcher.EventContextFactory.Create(
+                new SomeEvent(), 
+                typeof(IEventHandler<>).MakeGenericType(typeof(SomeQuery)),
+                CancellationToken.None);
+
+            Assert.AreEqual(typeof(CqrsVibe.Events.Pipeline.EventHandlingContext<SomeEvent>), context.GetType());
         }
 
         private class SomeQuery : IQuery<string>
@@ -37,6 +49,10 @@ namespace CqrsVibe.Tests
         }
 
         private class SomeCommand : ICommand
+        {
+        }
+
+        private class SomeEvent
         {
         }
     }

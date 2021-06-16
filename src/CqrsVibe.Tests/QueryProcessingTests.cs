@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
@@ -51,7 +53,7 @@ namespace CqrsVibe.Tests
             var queryService = new QueryService(new HandlerResolver(() => new SomeQueryHandler()), configurator =>
             {
                 configurator.UseForQueries(
-                    new[] {typeof(SomeQuery)},
+                    new[] {typeof(SomeQuery)}.ToHashSet(),
                     cfg =>
                         cfg.UseExecute(_ => pipelineForSomeQueryExecuted = true));
 
@@ -65,6 +67,20 @@ namespace CqrsVibe.Tests
             
             Assert.IsTrue(pipelineForSomeQueryExecuted);
             Assert.IsFalse(pipelineForAnotherQueryExecuted);
+        }
+
+        [Test]
+        public void Should_throw_correct_exception()
+        {
+            const string expectedResult = "test";
+            var queryService = new QueryService(new HandlerResolver(() => new SomeBuggyQueryHandler()));
+
+            var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
+            {
+                return queryService.QueryAsync(new SomeBuggyQuery(expectedResult));
+            });
+            
+            Assert.AreEqual(expectedResult, exception.Message);
         }
 
         private class SomeQuery : IQuery<string>
@@ -88,6 +104,26 @@ namespace CqrsVibe.Tests
                 CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(context.Query.SomeProperty);
+            }
+        }
+
+        private class SomeBuggyQuery : IQuery<string>
+        {
+            public SomeBuggyQuery(string exceptionText)
+            {
+                ExceptionText = exceptionText;
+            }
+
+            public string ExceptionText { get; }
+        }
+
+        private class SomeBuggyQueryHandler : IQueryHandler<SomeBuggyQuery, string>
+        {
+            public Task<string> HandleAsync(
+                IQueryHandlingContext<SomeBuggyQuery> context, 
+                CancellationToken cancellationToken = default)
+            {
+                throw new InvalidOperationException(context.Query.ExceptionText);
             }
         }
     }

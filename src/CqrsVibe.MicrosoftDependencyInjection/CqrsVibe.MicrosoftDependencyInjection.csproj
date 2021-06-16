@@ -3,7 +3,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <Authors>Vsevolod Elunin</Authors>
-        <RootNamespace>Cqrs.MicrosoftDependencyInjection</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>1.0.0-alpha</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>

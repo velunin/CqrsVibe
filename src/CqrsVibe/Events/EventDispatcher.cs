@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
@@ -12,7 +11,7 @@ namespace CqrsVibe.Events
 {
     public class EventDispatcher : IEventDispatcher
     {
-        private readonly IPipe<EventHandlingContext> _eventHandlePipe;
+        private readonly IPipe<IEventHandlingContext> _eventHandlePipe;
 
         private readonly ConcurrentDictionary<Type, Type> _eventHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
@@ -58,7 +57,7 @@ namespace CqrsVibe.Events
                 ContextConstructorInvokers =
                     new ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>();
                     
-            public static EventHandlingContext Create(
+            public static IEventHandlingContext Create(
                 object @event, 
                 Type handlerInterface,
                 CancellationToken cancellationToken)
@@ -84,18 +83,18 @@ namespace CqrsVibe.Events
                     null);
                 
                 var eventParameter = Expression.Parameter(typeof(object), "@event");
-                var handlerParameter = Expression.Parameter(typeof(Type), "handler");
+                var handlerInterfaceParameter = Expression.Parameter(typeof(Type), "handlerInterface");
                 var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var concreteEventInstance = Expression.Variable(eventType, "concreteEvent");
 
                 var block = Expression.Block(new[] {concreteEventInstance},
                     Expression.Assign(concreteEventInstance, Expression.Convert(eventParameter, eventType)),
-                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerParameter, cancellationTokenParameter));
+                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerInterfaceParameter, cancellationTokenParameter));
 
                 var constructorInvoker =
                     Expression.Lambda<Func<object, Type, CancellationToken, EventHandlingContext>>(
-                        block, eventParameter, handlerParameter, cancellationTokenParameter);
+                        block, eventParameter, handlerInterfaceParameter, cancellationTokenParameter);
 
                 return constructorInvoker.Compile();
             }

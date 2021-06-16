@@ -3,7 +3,6 @@ using CqrsVibe.Commands;
 using CqrsVibe.Events;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
-using GreenPipes.Contracts;
 using NUnit.Framework;
 
 namespace CqrsVibe.Tests
@@ -41,7 +40,7 @@ namespace CqrsVibe.Tests
                 typeof(IEventHandler<>).MakeGenericType(typeof(SomeQuery)),
                 CancellationToken.None);
 
-            Assert.AreEqual(typeof(CqrsVibe.Events.Pipeline.EventHandlingContext<SomeEvent>), context.GetType());
+            Assert.AreEqual(typeof(Events.Pipeline.EventHandlingContext<SomeEvent>), context.GetType());
         }
 
         private class SomeQuery : IQuery<string>

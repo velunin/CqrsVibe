@@ -11,7 +11,7 @@ namespace CqrsVibe.Queries
 {
     public class QueryService : IQueryService
     {
-        private readonly IPipe<QueryHandlingContext> _queryPipe;
+        private readonly IPipe<IQueryHandlingContext> _queryPipe;
         
         private readonly ConcurrentDictionary<Type, Type> _queryHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
@@ -96,18 +96,18 @@ namespace CqrsVibe.Queries
                     null);
                 
                 var queryParameter = Expression.Parameter(typeof(IQuery), "query");
-                var handlerParameter = Expression.Parameter(typeof(Type), "handler");
+                var handlerInterfaceParameter = Expression.Parameter(typeof(Type), "handlerInterface");
                 var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var concreteQueryInstance = Expression.Variable(queryType, "concreteQuery");
 
                 var block = Expression.Block(new[] {concreteQueryInstance},
                     Expression.Assign(concreteQueryInstance, Expression.Convert(queryParameter, queryType)),
-                    Expression.New(contextConstructorInfo!, concreteQueryInstance, handlerParameter, cancellationTokenParameter));
+                    Expression.New(contextConstructorInfo!, concreteQueryInstance, handlerInterfaceParameter, cancellationTokenParameter));
 
                 var constructorInvoker =
                     Expression.Lambda<Func<IQuery, Type, CancellationToken, QueryHandlingContext>>(
-                        block, queryParameter, handlerParameter, cancellationTokenParameter);
+                        block, queryParameter, handlerInterfaceParameter, cancellationTokenParameter);
 
                 return constructorInvoker.Compile();
             }

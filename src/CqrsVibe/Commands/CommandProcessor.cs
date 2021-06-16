@@ -11,7 +11,7 @@ namespace CqrsVibe.Commands
 {
     public class CommandProcessor : ICommandProcessor
     {
-        private readonly IPipe<CommandHandlingContext> _commandPipe;
+        private readonly IPipe<ICommandHandlingContext> _commandPipe;
 
         private readonly ConcurrentDictionary<Type, Type> _commandHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
@@ -117,18 +117,18 @@ namespace CqrsVibe.Commands
                     null);
                 
                 var commandLambdaParameter = Expression.Parameter(typeof(ICommand), "command");
-                var handlerParameter = Expression.Parameter(typeof(Type), "handler");
+                var handlerInterfaceParameter = Expression.Parameter(typeof(Type), "handlerInterface");
                 var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
-                var concreteCommandInstance = Expression.Variable(commandType, "concreteComm    and");
+                var concreteCommandInstance = Expression.Variable(commandType, "concreteCommand");
 
                 var block = Expression.Block(new[] {concreteCommandInstance},
                     Expression.Assign(concreteCommandInstance, Expression.Convert(commandLambdaParameter, commandType)),
-                    Expression.New(contextConstructorInfo!, concreteCommandInstance, handlerParameter, cancellationTokenParameter));
+                    Expression.New(contextConstructorInfo!, concreteCommandInstance, handlerInterfaceParameter, cancellationTokenParameter));
 
                 var constructorInvoker =
                     Expression.Lambda<Func<ICommand, Type, CancellationToken, CommandHandlingContext>>(
-                        block, commandLambdaParameter, handlerParameter, cancellationTokenParameter);
+                        block, commandLambdaParameter, handlerInterfaceParameter, cancellationTokenParameter);
 
                 return constructorInvoker.Compile();
             }

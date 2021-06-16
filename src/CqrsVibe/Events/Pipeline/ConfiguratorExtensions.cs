@@ -16,9 +16,9 @@ namespace CqrsVibe.Events.Pipeline
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            configurator.UseDispatch(
-                new ConcreteEventContextConverterFactory(),
-                cfg => cfg.Pipe(configure));
+            configurator.UseRouteFor(
+                context => context is IEventHandlingContext<TEvent>, 
+                configure);
         }
         
         public static void UseForEvents(
@@ -36,9 +36,9 @@ namespace CqrsVibe.Events.Pipeline
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            configurator.UseDispatch(
-                new EventContextConverterFactory(predicate),
-                cfg => cfg.Pipe(configure));
+            configurator.UseRouteFor(
+                context => predicate(context.Event), 
+                configure);
         }
         
         public static void UseForEvents(
@@ -56,9 +56,9 @@ namespace CqrsVibe.Events.Pipeline
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            configurator.UseDispatch(
-                new EventContextConverterFactory(@event => eventTypes.Any(t => t == @event.GetType())),
-                cfg => cfg.Pipe(configure));
+            configurator.UseRouteFor(
+                context => eventTypes.Contains(context.Event.GetType()), 
+                configure);
         }
         
         public static void UseForEvents(

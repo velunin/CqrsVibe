@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Commands;
@@ -27,7 +29,7 @@ namespace CqrsVibe.Tests
             var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandWithResultHandler()));
 
             var result = await processor.ProcessAsync(new SomeCommandWithResult(expectedResult));
-           
+
             Assert.AreEqual(expectedResult, result);
         }
 
@@ -41,13 +43,13 @@ namespace CqrsVibe.Tests
             {
                 configurator.UseForCommand<SomeCommand>(cfg =>
                     cfg.UseExecute(_ => pipelineForSomeCommandExecuted = true));
-                
+
                 configurator.UseForCommand<AnotherCommand>(cfg =>
-                    cfg.UseExecute(_ => pipelineForAnotherCommandExecuted = true));
+                    cfg.UseExecute(_ =>  pipelineForAnotherCommandExecuted = true));
             });
 
             await processor.ProcessAsync(new SomeCommand());
-            
+
             Assert.IsTrue(pipelineForSomeCommandExecuted);
             Assert.IsFalse(pipelineForAnotherCommandExecuted);
         }
@@ -61,7 +63,7 @@ namespace CqrsVibe.Tests
             var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()), configurator =>
             {
                 configurator.UseForCommands(
-                    new[] {typeof(SomeCommand)},
+                    new[] {typeof(SomeCommand)}.ToHashSet(),
                     cfg =>
                         cfg.UseExecute(_ => pipelineForSomeCommandExecuted = true));
 
@@ -75,6 +77,20 @@ namespace CqrsVibe.Tests
             
             Assert.IsTrue(pipelineForSomeCommandExecuted);
             Assert.IsFalse(pipelineForAnotherCommandExecuted);
+        }
+
+        [Test]
+        public void Should_throw_correct_exception()
+        {
+            const string expectedResult = "test";
+            var processor = new CommandProcessor(new HandlerResolver(() => new SomeBuggyCommandHandler()));
+
+            var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
+            {
+                return processor.ProcessAsync(new SomeBuggyCommand(expectedResult));
+            });
+            
+            Assert.AreEqual(expectedResult, exception.Message);
         }
         
         private class SomeCommand : ICommand
@@ -112,6 +128,24 @@ namespace CqrsVibe.Tests
                 CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(context.Command.SomeProperty);
+            }
+        }
+
+        private class SomeBuggyCommand : ICommand
+        {
+            public SomeBuggyCommand(string exceptionText)
+            {
+                ExceptionText = exceptionText;
+            }
+
+            public string ExceptionText { get; }
+        }
+
+        private class SomeBuggyCommandHandler : ICommandHandler<SomeBuggyCommand>
+        {
+            public Task HandleAsync(ICommandHandlingContext<SomeBuggyCommand> context, CancellationToken cancellationToken = default)
+            {
+                throw new InvalidOperationException(context.Command.ExceptionText);
             }
         }
     }

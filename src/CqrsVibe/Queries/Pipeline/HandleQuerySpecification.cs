@@ -65,40 +65,4 @@ namespace CqrsVibe.Queries.Pipeline
             }
         }
     }
-
-    internal class QueryContextConverterFactory : IPipeContextConverterFactory<IQueryHandlingContext>
-    {
-        private readonly Func<IQuery, bool> _filter;
-
-        public QueryContextConverterFactory(Func<IQuery, bool> filter)
-        {
-            _filter = filter ?? throw new ArgumentNullException(nameof(filter));
-        }
-
-        public IPipeContextConverter<IQueryHandlingContext, TOutput> GetConverter<TOutput>() where TOutput : class, PipeContext
-        {
-            return (IPipeContextConverter<IQueryHandlingContext, TOutput>)new QueryContextConverter(_filter);
-        }
-        
-        private class QueryContextConverter : IPipeContextConverter<IQueryHandlingContext, IQueryHandlingContext>
-        {
-            private readonly Func<IQuery, bool> _filter;
-
-            public QueryContextConverter(Func<IQuery, bool> filter)
-            {
-                _filter = filter ?? throw new ArgumentNullException(nameof(filter));
-            }
-
-            public bool TryConvert(IQueryHandlingContext input, out IQueryHandlingContext output)
-            {
-                if (!_filter(input.Query))
-                {
-                    output = null;
-                    return false;
-                }
-                output = input;
-                return true;
-            }
-        }
-    }
 }

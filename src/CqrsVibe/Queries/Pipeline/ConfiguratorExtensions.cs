@@ -16,10 +16,10 @@ namespace CqrsVibe.Queries.Pipeline
             {
                 throw new ArgumentNullException(nameof(configure));
             }
-
-            configurator.UseDispatch(
-                new ConcreteQueryContextConverterFactory(),
-                cfg => cfg.Pipe(configure));
+            
+            configurator.UseRouteFor(
+                context => context is IQueryHandlingContext<TQuery>, 
+                configure);
         }
         
         public static void UseForQueries(
@@ -36,10 +36,10 @@ namespace CqrsVibe.Queries.Pipeline
             {
                 throw new ArgumentNullException(nameof(configure));
             }
-
-            configurator.UseDispatch(
-                new QueryContextConverterFactory(predicate),
-                cfg => cfg.Pipe(configure));
+            
+            configurator.UseRouteFor(
+                context => predicate(context.Query), 
+                configure);
         }
         
         public static void UseForQueries(
@@ -56,10 +56,10 @@ namespace CqrsVibe.Queries.Pipeline
             {
                 throw new ArgumentNullException(nameof(configure));
             }
-
-            configurator.UseDispatch(
-                new QueryContextConverterFactory(query => queryTypes.Any(t => t == query.GetType())),
-                cfg => cfg.Pipe(configure));
+            
+            configurator.UseRouteFor(
+                context => queryTypes.Contains(context.Query.GetType()), 
+                configure);
         }
         
         public static void UseForQueries(

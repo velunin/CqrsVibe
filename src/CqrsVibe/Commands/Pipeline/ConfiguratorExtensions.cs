@@ -17,11 +17,11 @@ namespace CqrsVibe.Commands.Pipeline
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            configurator.UseDispatch(
-                new ConcreteCommandContextConverterFactory(),
-                cfg => cfg.Pipe(configure));
+            configurator.UseRouteFor(
+                context => context is ICommandHandlingContext<TCommand>, 
+                configure);
         }
-        
+
         public static void UseForCommands(
             this IPipeConfigurator<ICommandHandlingContext> configurator, 
             Func<ICommand, bool> predicate, 
@@ -36,10 +36,10 @@ namespace CqrsVibe.Commands.Pipeline
             {
                 throw new ArgumentNullException(nameof(configure));
             }
-
-            configurator.UseDispatch(
-                new CommandContextConverterFactory(predicate),
-                cfg => cfg.Pipe(configure));
+            
+            configurator.UseRouteFor(
+                context=> predicate(context.Command), 
+                configure);
         }
         
         public static void UseForCommands(
@@ -56,10 +56,10 @@ namespace CqrsVibe.Commands.Pipeline
             {
                 throw new ArgumentNullException(nameof(configure));
             }
-
-            configurator.UseDispatch(
-                new CommandContextConverterFactory(command => commandTypes.Any(t => t == command.GetType())),
-                cfg => cfg.Pipe(configure));
+            
+            configurator.UseRouteFor(
+                context=> commandTypes.Contains(context.Command.GetType()), 
+                configure);
         }
         
         public static void UseForCommands(

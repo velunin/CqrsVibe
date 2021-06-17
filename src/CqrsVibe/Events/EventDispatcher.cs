@@ -57,7 +57,7 @@ namespace CqrsVibe.Events
                 ContextConstructorInvokers =
                     new ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>();
                     
-            public static IEventHandlingContext Create(
+            public static EventHandlingContext Create(
                 object @event, 
                 Type handlerInterface,
                 CancellationToken cancellationToken)

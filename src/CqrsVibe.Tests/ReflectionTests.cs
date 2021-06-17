@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using CqrsVibe.Commands;
 using CqrsVibe.Events;
 using CqrsVibe.Queries;
@@ -37,7 +38,7 @@ namespace CqrsVibe.Tests
         {
             var context = EventDispatcher.EventContextFactory.Create(
                 new SomeEvent(), 
-                typeof(IEventHandler<>).MakeGenericType(typeof(SomeQuery)),
+                typeof(IEventHandler<>).MakeGenericType(typeof(SomeEvent)),
                 CancellationToken.None);
 
             Assert.AreEqual(typeof(Events.Pipeline.EventHandlingContext<SomeEvent>), context.GetType());

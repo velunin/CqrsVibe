@@ -8,12 +8,12 @@ namespace CqrsVibe.Commands.Pipeline
 {
     internal class HandleCommandSpecification : IPipeSpecification<ICommandHandlingContext>
     {
-        private readonly IHandlerResolver _handlerResolver;
+        private readonly IDependencyResolverAccessor _resolverAccessor;
         private readonly HandlerInvokerFactory<ICommandHandlingContext> _commandHandlerInvokerFactory;
 
-        public HandleCommandSpecification(IHandlerResolver handlerResolver)
+        public HandleCommandSpecification(IDependencyResolverAccessor resolverAccessor)
         {
-            _handlerResolver = handlerResolver ?? throw new ArgumentNullException(nameof(handlerResolver));
+            _resolverAccessor = resolverAccessor ?? throw new ArgumentNullException(nameof(resolverAccessor));
             _commandHandlerInvokerFactory = new HandlerInvokerFactory<ICommandHandlingContext>();
         }
 
@@ -22,12 +22,12 @@ namespace CqrsVibe.Commands.Pipeline
             builder.AddFilter(new InlineFilter<ICommandHandlingContext>((context, next) =>
             {
                 var commandContext = (CommandHandlingContext) context;
-      
+
                 var commandHandlerInvoker = _commandHandlerInvokerFactory.GetOrCreate(
                     commandContext.GetType(), 
                     commandContext.CommandHandlerInterface);
 
-                var commandHandlerInstance = _handlerResolver.ResolveHandler(commandHandlerInvoker.HandlerInterface);
+                var commandHandlerInstance = _resolverAccessor.Current.ResolveService(commandHandlerInvoker.HandlerInterface);
                 
                 return commandContext.Result = commandHandlerInvoker.HandleAsync(
                     commandHandlerInstance,

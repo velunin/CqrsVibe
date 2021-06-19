@@ -12,10 +12,15 @@ namespace CqrsVibe.Tests
     [TestFixture]
     public class CommandProcessingTests
     {
+        private readonly IDependencyResolverAccessor _resolverAccessor =
+            new DependencyResolverAccessor(null);
+
         [Test]
         public async Task Should_process_command_without_result()
         {
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()));
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeCommandHandler());
+            
+            var processor = new CommandProcessor(_resolverAccessor);
             
             await processor.ProcessAsync(new SomeCommand());
 
@@ -26,7 +31,9 @@ namespace CqrsVibe.Tests
         public async Task Should_process_command_with_result()
         {
             const string expectedResult = "test";
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandWithResultHandler()));
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeCommandWithResultHandler());
+            
+            var processor = new CommandProcessor(_resolverAccessor);
 
             var result = await processor.ProcessAsync(new SomeCommandWithResult(expectedResult));
 
@@ -39,7 +46,9 @@ namespace CqrsVibe.Tests
             var pipelineForSomeCommandExecuted = false;
             var pipelineForAnotherCommandExecuted = false;
             
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()), configurator =>
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeCommandHandler());
+            
+            var processor = new CommandProcessor(_resolverAccessor, configurator =>
             {
                 configurator.UseForCommand<SomeCommand>(cfg =>
                     cfg.UseExecute(_ => pipelineForSomeCommandExecuted = true));
@@ -60,7 +69,9 @@ namespace CqrsVibe.Tests
             var pipelineForSomeCommandExecuted = false;
             var pipelineForAnotherCommandExecuted = false;
 
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()), configurator =>
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeCommandHandler());
+
+            var processor = new CommandProcessor(_resolverAccessor, configurator =>
             {
                 configurator.UseForCommands(
                     new[] {typeof(SomeCommand)}.ToHashSet(),
@@ -83,7 +94,9 @@ namespace CqrsVibe.Tests
         public void Should_throw_correct_exception()
         {
             const string expectedResult = "test";
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeBuggyCommandHandler()));
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeBuggyCommandHandler());
+            
+            var processor = new CommandProcessor(_resolverAccessor);
 
             var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
             {

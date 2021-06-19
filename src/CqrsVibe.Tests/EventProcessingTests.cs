@@ -9,17 +9,22 @@ namespace CqrsVibe.Tests
     [TestFixture]
     public class EventProcessingTests
     {
+        private readonly IDependencyResolverAccessor _resolverAccessor =
+            new DependencyResolverAccessor(null);
+
         [Test]
         public async Task Should_process_event()
         {
-            var dispatcher = new EventDispatcher(new HandlerResolver(multipleHandlerFactory: () =>
+            _resolverAccessor.Current = new DependencyResolver(multipleHandlerFactory: () =>
             {
                 return new object[]
                 {
                     new SomeEventHandler(),
                     new SomeEventHandler2()
                 };
-            }));
+            });
+
+            var dispatcher = new EventDispatcher(_resolverAccessor);
 
             await dispatcher.DispatchAsync(new SomeEvent());
 

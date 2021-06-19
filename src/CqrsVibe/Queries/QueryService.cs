@@ -17,23 +17,25 @@ namespace CqrsVibe.Queries
             new ConcurrentDictionary<Type, Type>();
 
         public QueryService(
-            IHandlerResolver handlerResolver,
+            IDependencyResolverAccessor resolverAccessor,
             Action<IPipeConfigurator<IQueryHandlingContext>> configurePipeline = null)
         {
-            if (handlerResolver == null)
+            if (resolverAccessor == null)
             {
-                throw new ArgumentNullException(nameof(handlerResolver));
+                throw new ArgumentNullException(nameof(resolverAccessor));
             }
             
             _queryPipe = Pipe.New<IQueryHandlingContext>(pipeConfigurator =>
             {
+                pipeConfigurator.AddPipeSpecification(new SetDependencyResolverSpecification<IQueryHandlingContext>(resolverAccessor));
+                
                 configurePipeline?.Invoke(pipeConfigurator);
                 
-                pipeConfigurator.AddPipeSpecification(new HandleQuerySpecification(handlerResolver));
+                pipeConfigurator.AddPipeSpecification(new HandleQuerySpecification(resolverAccessor));
             });
         }
 
-        public Task<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
+        public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -50,18 +52,8 @@ namespace CqrsVibe.Queries
             
             var context = QueryContextFactory.Create(query, queryHandlerType, cancellationToken);
 
-            return _queryPipe
-                .Send(context)
-                .ContinueWith(
-                    sendTask =>
-                    {
-                        if (sendTask.IsFaulted && sendTask.Exception != null)
-                        {
-                            throw sendTask.Exception.GetBaseException();
-                        }
-
-                        return ((Task<TResult>) context.Result).Result;
-                    }, cancellationToken);
+            await _queryPipe.Send(context);
+            return ((Task<TResult>) context.Result).Result;
         }
         
         internal static class QueryContextFactory

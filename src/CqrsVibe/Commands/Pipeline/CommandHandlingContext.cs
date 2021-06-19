@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenPipes;
 
 namespace CqrsVibe.Commands.Pipeline
 {
-    public interface ICommandHandlingContext : PipeContext
+    public interface ICommandHandlingContext : IHandlingContext
     {
         ICommand Command { get; }
     }
@@ -29,7 +28,7 @@ namespace CqrsVibe.Commands.Pipeline
         
     }
     
-    internal class CommandHandlingContext : BasePipeContext, ICommandHandlingContext
+    internal class CommandHandlingContext : BaseHandlingContext, ICommandHandlingContext
     {
         protected CommandHandlingContext(
             ICommand command, 

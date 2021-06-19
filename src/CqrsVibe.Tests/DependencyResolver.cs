@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace CqrsVibe.Tests
 {
-    public class HandlerResolver : IHandlerResolver
+    public class DependencyResolver : IDependencyResolver
     {
         private readonly Func<object> _singleHandlerFactory;
         private readonly Func<IEnumerable<object>> _multipleHandlerFactory;
         
-        public HandlerResolver(
+        public DependencyResolver(
             Func<object> singleHandlerFactory = null, 
             Func<IEnumerable<object>> multipleHandlerFactory = null)
         {
@@ -16,12 +16,12 @@ namespace CqrsVibe.Tests
             _multipleHandlerFactory = multipleHandlerFactory;
         }
         
-        public object ResolveHandler(Type type)
+        public object ResolveService(Type type)
         {
             return _singleHandlerFactory?.Invoke();
         }
 
-        public IEnumerable<object> ResolveHandlers(Type type)
+        public IEnumerable<object> ResolveServices(Type type)
         {
             return _multipleHandlerFactory?.Invoke();
         }

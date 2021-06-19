@@ -9,12 +9,12 @@ namespace CqrsVibe.Events.Pipeline
 {
     internal class HandleEventSpecification : IPipeSpecification<IEventHandlingContext>
     {
-        private readonly IHandlerResolver _handlerResolver;
+        private readonly IDependencyResolverAccessor _resolverAccessor;
         private readonly HandlerInvokerFactory<IEventHandlingContext> _eventHandlerInvokerFactory;
 
-        public HandleEventSpecification(IHandlerResolver handlerResolver)
+        public HandleEventSpecification(IDependencyResolverAccessor resolverAccessor)
         {
-            _handlerResolver = handlerResolver ?? throw new ArgumentNullException(nameof(handlerResolver));
+            _resolverAccessor = resolverAccessor ?? throw new ArgumentNullException(nameof(resolverAccessor));
             _eventHandlerInvokerFactory = new HandlerInvokerFactory<IEventHandlingContext>();
         }
 
@@ -28,7 +28,7 @@ namespace CqrsVibe.Events.Pipeline
                     eventContext.GetType(), 
                     eventContext.EventHandlerInterface);
 
-                var eventHandlers = _handlerResolver.ResolveHandlers(eventHandlerInvoker.HandlerInterface);
+                var eventHandlers = _resolverAccessor.Current.ResolveServices(eventHandlerInvoker.HandlerInterface);
 
                 var handleTasks = eventHandlers?
                                       .Select(handler =>

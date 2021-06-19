@@ -12,11 +12,17 @@ namespace CqrsVibe.Tests
     [TestFixture]
     public class QueryProcessingTests
     {
+        private readonly IDependencyResolverAccessor _resolverAccessor =
+            new DependencyResolverAccessor(null);
+
         [Test]
         public async Task Should_execute_query()
         {
             const string expectedResult = "test";
-            var queryService = new QueryService(new HandlerResolver(() => new SomeQueryHandler()));
+
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeQueryHandler());
+
+            var queryService = new QueryService(_resolverAccessor);
 
             var result = await queryService.QueryAsync(new SomeQuery(expectedResult));
             
@@ -28,8 +34,10 @@ namespace CqrsVibe.Tests
         {
             var pipelineForSomeQueryExecuted = false;
             var pipelineForAnotherQueryExecuted = false;
-            
-            var queryService = new QueryService(new HandlerResolver(() => new SomeQueryHandler()), configurator =>
+
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeQueryHandler());
+
+            var queryService = new QueryService(_resolverAccessor, configurator =>
             {
                 configurator.UseForQuery<SomeQuery>(cfg =>
                     cfg.UseExecute(_ => pipelineForSomeQueryExecuted = true));
@@ -50,7 +58,9 @@ namespace CqrsVibe.Tests
             var pipelineForSomeQueryExecuted = false;
             var pipelineForAnotherQueryExecuted = false;
 
-            var queryService = new QueryService(new HandlerResolver(() => new SomeQueryHandler()), configurator =>
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeQueryHandler());
+
+            var queryService = new QueryService(_resolverAccessor, configurator =>
             {
                 configurator.UseForQueries(
                     new[] {typeof(SomeQuery)}.ToHashSet(),
@@ -73,7 +83,10 @@ namespace CqrsVibe.Tests
         public void Should_throw_correct_exception()
         {
             const string expectedResult = "test";
-            var queryService = new QueryService(new HandlerResolver(() => new SomeBuggyQueryHandler()));
+
+            _resolverAccessor.Current = new DependencyResolver(() => new SomeBuggyQueryHandler());
+
+            var queryService = new QueryService(_resolverAccessor);
 
             var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
             {

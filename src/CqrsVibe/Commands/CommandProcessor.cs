@@ -17,19 +17,22 @@ namespace CqrsVibe.Commands
             new ConcurrentDictionary<Type, Type>();
 
         public CommandProcessor(
-            IHandlerResolver handlerResolver, 
+            IDependencyResolverAccessor resolverAccessor, 
             Action<IPipeConfigurator<ICommandHandlingContext>> configurePipeline = null)
         {
-            if (handlerResolver == null)
+            if (resolverAccessor == null)
             {
-                throw new ArgumentNullException(nameof(handlerResolver));
+                throw new ArgumentNullException(nameof(resolverAccessor));
             }
-            
+
             _commandPipe = Pipe.New<ICommandHandlingContext>(pipeConfigurator =>
             {
+                pipeConfigurator.AddPipeSpecification(
+                    new SetDependencyResolverSpecification<ICommandHandlingContext>(resolverAccessor));
+
                 configurePipeline?.Invoke(pipeConfigurator);
-                
-                pipeConfigurator.AddPipeSpecification(new HandleCommandSpecification(handlerResolver));
+
+                pipeConfigurator.AddPipeSpecification(new HandleCommandSpecification(resolverAccessor));
             });
         }
         
@@ -53,7 +56,7 @@ namespace CqrsVibe.Commands
             return _commandPipe.Send(context);
         }
         
-        public Task<TResult> ProcessAsync<TResult>(ICommand<TResult> command,
+        public async Task<TResult> ProcessAsync<TResult>(ICommand<TResult> command,
             CancellationToken cancellationToken = default)
         {
             if (command == null)
@@ -71,18 +74,8 @@ namespace CqrsVibe.Commands
             
             var context = CommandContextFactory.Create(command, commandHandlerType, cancellationToken);
 
-            return _commandPipe
-                .Send(context)
-                .ContinueWith(
-                    sendTask =>
-                    {
-                        if (sendTask.IsFaulted && sendTask.Exception != null)
-                        {
-                            throw sendTask.Exception.GetBaseException();
-                        }
-
-                        return ((Task<TResult>) context.Result).Result;
-                    }, cancellationToken);
+            await _commandPipe.Send(context);
+            return ((Task<TResult>) context.Result).Result;
         }
 
         internal static class CommandContextFactory

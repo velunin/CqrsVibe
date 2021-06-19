@@ -5,7 +5,7 @@ using GreenPipes;
 
 namespace CqrsVibe.Events.Pipeline
 {
-    public interface IEventHandlingContext : PipeContext
+    public interface IEventHandlingContext : IHandlingContext
     {
         object Event { get; }
     }
@@ -15,7 +15,7 @@ namespace CqrsVibe.Events.Pipeline
         new TEvent Event { get; }
     }
 
-    internal class EventHandlingContext : BasePipeContext, IEventHandlingContext
+    internal class EventHandlingContext : BaseHandlingContext, IEventHandlingContext
     {
         protected EventHandlingContext(object @event, Type eventHandlerInterface, CancellationToken cancellationToken)
             : base(cancellationToken)

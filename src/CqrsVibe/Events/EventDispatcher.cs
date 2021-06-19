@@ -16,18 +16,21 @@ namespace CqrsVibe.Events
         private readonly ConcurrentDictionary<Type, Type> _eventHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
-        public EventDispatcher(IHandlerResolver handlerResolver, Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
+        public EventDispatcher(IDependencyResolverAccessor resolverAccessor, Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
         {
-            if (handlerResolver == null)
+            if (resolverAccessor == null)
             {
-                throw new ArgumentNullException(nameof(handlerResolver));
+                throw new ArgumentNullException(nameof(resolverAccessor));
             }
             
             _eventHandlePipe = Pipe.New<IEventHandlingContext>(pipeConfigurator =>
             {
+                pipeConfigurator.AddPipeSpecification(
+                    new SetDependencyResolverSpecification<IEventHandlingContext>(resolverAccessor));
+                
                 configurePipeline?.Invoke(pipeConfigurator);
                 
-                pipeConfigurator.AddPipeSpecification(new HandleEventSpecification(handlerResolver));
+                pipeConfigurator.AddPipeSpecification(new HandleEventSpecification(resolverAccessor));
             });
         }
 

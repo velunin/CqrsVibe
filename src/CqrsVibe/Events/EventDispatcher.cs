@@ -16,18 +16,23 @@ namespace CqrsVibe.Events
         private readonly ConcurrentDictionary<Type, Type> _eventHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
-        public EventDispatcher(IHandlerResolver handlerResolver, Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
+        public EventDispatcher(
+            IDependencyResolverAccessor resolverAccessor, 
+            Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
         {
-            if (handlerResolver == null)
+            if (resolverAccessor == null)
             {
-                throw new ArgumentNullException(nameof(handlerResolver));
+                throw new ArgumentNullException(nameof(resolverAccessor));
             }
             
             _eventHandlePipe = Pipe.New<IEventHandlingContext>(pipeConfigurator =>
             {
+                pipeConfigurator.AddPipeSpecification(
+                    new SetDependencyResolverSpecification<IEventHandlingContext>(resolverAccessor));
+                
                 configurePipeline?.Invoke(pipeConfigurator);
                 
-                pipeConfigurator.AddPipeSpecification(new HandleEventSpecification(handlerResolver));
+                pipeConfigurator.AddPipeSpecification(new HandleEventSpecification(resolverAccessor));
             });
         }
 
@@ -53,7 +58,8 @@ namespace CqrsVibe.Events
 
         internal static class EventContextFactory
         {
-            private static readonly ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>
+            private static readonly
+                ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>
                 ContextConstructorInvokers =
                     new ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>();
                     
@@ -73,7 +79,8 @@ namespace CqrsVibe.Events
                 return contextConstructorInvoker(@event, handlerInterface, cancellationToken);
             }
 
-            private static Func<object,Type,CancellationToken,EventHandlingContext> CreateContextConstructorInvoker(Type eventType)
+            private static Func<object, Type, CancellationToken, EventHandlingContext> CreateContextConstructorInvoker(
+                Type eventType)
             {
                 var contextType = typeof(EventHandlingContext<>).MakeGenericType(eventType);
                 var contextConstructorInfo = contextType.GetConstructor(
@@ -81,7 +88,7 @@ namespace CqrsVibe.Events
                     null,
                     new[] {eventType, typeof(Type), typeof(CancellationToken)},
                     null);
-                
+
                 var eventParameter = Expression.Parameter(typeof(object), "@event");
                 var handlerInterfaceParameter = Expression.Parameter(typeof(Type), "handlerInterface");
                 var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
@@ -90,7 +97,8 @@ namespace CqrsVibe.Events
 
                 var block = Expression.Block(new[] {concreteEventInstance},
                     Expression.Assign(concreteEventInstance, Expression.Convert(eventParameter, eventType)),
-                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerInterfaceParameter, cancellationTokenParameter));
+                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerInterfaceParameter,
+                        cancellationTokenParameter));
 
                 var constructorInvoker =
                     Expression.Lambda<Func<object, Type, CancellationToken, EventHandlingContext>>(

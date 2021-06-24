@@ -10,12 +10,12 @@ using NUnit.Framework;
 namespace CqrsVibe.Tests
 {
     [TestFixture]
-    public class CommandProcessingTests
+    public class CommandProcessingTests : BaseTest
     {
         [Test]
         public async Task Should_process_command_without_result()
         {
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()));
+            var processor = new CommandProcessor(ResolverAccessor);
             
             await processor.ProcessAsync(new SomeCommand());
 
@@ -26,7 +26,7 @@ namespace CqrsVibe.Tests
         public async Task Should_process_command_with_result()
         {
             const string expectedResult = "test";
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandWithResultHandler()));
+            var processor = new CommandProcessor(ResolverAccessor);
 
             var result = await processor.ProcessAsync(new SomeCommandWithResult(expectedResult));
 
@@ -38,8 +38,7 @@ namespace CqrsVibe.Tests
         {
             var pipelineForSomeCommandExecuted = false;
             var pipelineForAnotherCommandExecuted = false;
-            
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()), configurator =>
+            var processor = new CommandProcessor(ResolverAccessor, configurator =>
             {
                 configurator.UseForCommand<SomeCommand>(cfg =>
                     cfg.UseExecute(_ => pipelineForSomeCommandExecuted = true));
@@ -59,18 +58,17 @@ namespace CqrsVibe.Tests
         {
             var pipelineForSomeCommandExecuted = false;
             var pipelineForAnotherCommandExecuted = false;
-
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeCommandHandler()), configurator =>
+            var processor = new CommandProcessor(ResolverAccessor, cfg =>
             {
-                configurator.UseForCommands(
+                cfg.UseForCommands(
                     new[] {typeof(SomeCommand)}.ToHashSet(),
-                    cfg =>
-                        cfg.UseExecute(_ => pipelineForSomeCommandExecuted = true));
+                    cfg2 =>
+                        cfg2.UseExecute(_ => pipelineForSomeCommandExecuted = true));
 
-                configurator.UseForCommands(
+                cfg.UseForCommands(
                     new[] {typeof(AnotherCommand)},
-                    cfg =>
-                        cfg.UseExecute(_ => pipelineForAnotherCommandExecuted = true));
+                    cfg2 =>
+                        cfg2.UseExecute(_ => pipelineForAnotherCommandExecuted = true));
             });
 
             await processor.ProcessAsync(new SomeCommand());
@@ -83,7 +81,7 @@ namespace CqrsVibe.Tests
         public void Should_throw_correct_exception()
         {
             const string expectedResult = "test";
-            var processor = new CommandProcessor(new HandlerResolver(() => new SomeBuggyCommandHandler()));
+            var processor = new CommandProcessor(ResolverAccessor);
 
             var exception = Assert.ThrowsAsync<InvalidOperationException>(() =>
             {
@@ -101,6 +99,7 @@ namespace CqrsVibe.Tests
         {
         }
     
+        // ReSharper disable once UnusedType.Local
         private class SomeCommandHandler : ICommandHandler<SomeCommand>
         {
             public Task HandleAsync(
@@ -121,6 +120,7 @@ namespace CqrsVibe.Tests
             public string SomeProperty { get; }
         }
     
+        // ReSharper disable once UnusedType.Local
         private class SomeCommandWithResultHandler : ICommandHandler<SomeCommandWithResult, string>
         {
             public Task<string> HandleAsync(
@@ -141,6 +141,7 @@ namespace CqrsVibe.Tests
             public string ExceptionText { get; }
         }
 
+        // ReSharper disable once UnusedType.Local
         private class SomeBuggyCommandHandler : ICommandHandler<SomeBuggyCommand>
         {
             public Task HandleAsync(ICommandHandlingContext<SomeBuggyCommand> context, CancellationToken cancellationToken = default)

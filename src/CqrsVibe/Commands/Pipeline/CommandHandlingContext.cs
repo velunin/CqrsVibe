@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenPipes;
 
 namespace CqrsVibe.Commands.Pipeline
 {
-    public interface ICommandHandlingContext : PipeContext
+    public interface ICommandHandlingContext : IHandlingContext, IResultingHandlingContext
     {
         ICommand Command { get; }
     }
@@ -29,7 +28,7 @@ namespace CqrsVibe.Commands.Pipeline
         
     }
     
-    internal class CommandHandlingContext : BasePipeContext, ICommandHandlingContext
+    public class CommandHandlingContext : BaseHandlingContext, ICommandHandlingContext
     {
         protected CommandHandlingContext(
             ICommand command, 
@@ -41,10 +40,15 @@ namespace CqrsVibe.Commands.Pipeline
             CommandHandlerInterface = commandHandlerInterface ?? throw new ArgumentNullException(nameof(commandHandlerInterface));
         }
 
+        public void SetResult(Task result)
+        {
+            Result = result;
+        }
+
         public ICommand Command { get; }
 
         public Type CommandHandlerInterface { get; }
 
-        public Task Result { get; set; }
+        public Task Result { get; private set; }
     }
 }

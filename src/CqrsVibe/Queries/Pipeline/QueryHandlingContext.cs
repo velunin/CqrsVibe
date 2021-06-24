@@ -5,7 +5,7 @@ using GreenPipes;
 
 namespace CqrsVibe.Queries.Pipeline
 {
-    public interface IQueryHandlingContext : PipeContext
+    public interface IQueryHandlingContext : IHandlingContext, IResultingHandlingContext
     {
         IQuery Query { get; }
     }
@@ -15,7 +15,7 @@ namespace CqrsVibe.Queries.Pipeline
         new TQuery Query { get; }
     }
     
-    internal class QueryHandlingContext : BasePipeContext, IQueryHandlingContext
+    internal class QueryHandlingContext : BaseHandlingContext, IQueryHandlingContext
     {
         protected QueryHandlingContext(IQuery query, Type queryHandlerInterface, CancellationToken cancellationToken) : base(cancellationToken)
         {
@@ -23,11 +23,16 @@ namespace CqrsVibe.Queries.Pipeline
             QueryHandlerInterface = queryHandlerInterface ?? throw new ArgumentNullException(nameof(queryHandlerInterface));
         }
 
+        public void SetResult(Task result)
+        {
+            Result = result;
+        }
+
         public IQuery Query { get; }
 
         public Type QueryHandlerInterface { get; }
 
-        public Task Result { get; set; }
+        public Task Result { get; private set; }
     }
 
     internal class QueryHandlingContext<TQuery> : QueryHandlingContext, IQueryHandlingContext<TQuery> where TQuery : IQuery

@@ -16,7 +16,9 @@ namespace CqrsVibe.Events
         private readonly ConcurrentDictionary<Type, Type> _eventHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
-        public EventDispatcher(IDependencyResolverAccessor resolverAccessor, Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
+        public EventDispatcher(
+            IDependencyResolverAccessor resolverAccessor, 
+            Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
         {
             if (resolverAccessor == null)
             {
@@ -56,7 +58,8 @@ namespace CqrsVibe.Events
 
         internal static class EventContextFactory
         {
-            private static readonly ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>
+            private static readonly
+                ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>
                 ContextConstructorInvokers =
                     new ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>();
                     
@@ -76,7 +79,8 @@ namespace CqrsVibe.Events
                 return contextConstructorInvoker(@event, handlerInterface, cancellationToken);
             }
 
-            private static Func<object,Type,CancellationToken,EventHandlingContext> CreateContextConstructorInvoker(Type eventType)
+            private static Func<object, Type, CancellationToken, EventHandlingContext> CreateContextConstructorInvoker(
+                Type eventType)
             {
                 var contextType = typeof(EventHandlingContext<>).MakeGenericType(eventType);
                 var contextConstructorInfo = contextType.GetConstructor(
@@ -84,7 +88,7 @@ namespace CqrsVibe.Events
                     null,
                     new[] {eventType, typeof(Type), typeof(CancellationToken)},
                     null);
-                
+
                 var eventParameter = Expression.Parameter(typeof(object), "@event");
                 var handlerInterfaceParameter = Expression.Parameter(typeof(Type), "handlerInterface");
                 var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
@@ -93,7 +97,8 @@ namespace CqrsVibe.Events
 
                 var block = Expression.Block(new[] {concreteEventInstance},
                     Expression.Assign(concreteEventInstance, Expression.Convert(eventParameter, eventType)),
-                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerInterfaceParameter, cancellationTokenParameter));
+                    Expression.New(contextConstructorInfo!, concreteEventInstance, handlerInterfaceParameter,
+                        cancellationTokenParameter));
 
                 var constructorInvoker =
                     Expression.Lambda<Func<object, Type, CancellationToken, EventHandlingContext>>(

@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Threading.Tasks;
 using GreenPipes;
 
 namespace CqrsVibe
@@ -15,5 +16,12 @@ namespace CqrsVibe
     public interface IHandlingContext : PipeContext
     {
         IDependencyResolver ContextServices { get; }
+    }
+
+    public interface IResultingHandlingContext
+    {
+        Task Result { get; }
+        
+        void SetResult(Task result);
     }
 }

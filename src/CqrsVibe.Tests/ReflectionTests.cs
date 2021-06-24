@@ -1,7 +1,8 @@
-﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using CqrsVibe.Commands;
 using CqrsVibe.Events;
+using CqrsVibe.FluentValidation;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
 using NUnit.Framework;
@@ -42,6 +43,18 @@ namespace CqrsVibe.Tests
                 CancellationToken.None);
 
             Assert.AreEqual(typeof(Events.Pipeline.EventHandlingContext<SomeEvent>), context.GetType());
+        }
+
+        [Test]
+        public void Should_create_task_with_given_either_validation_result()
+        {
+            var validationState = new ValidationState();
+
+            var task = ValidationResultTaskFactory
+                    .Create(validationState, typeof(Either<string, ValidationState>)) 
+                as Task<Either<string, ValidationState>>;
+
+            Assert.NotNull(task);
         }
 
         private class SomeQuery : IQuery<string>

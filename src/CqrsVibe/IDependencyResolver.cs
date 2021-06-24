@@ -12,6 +12,8 @@ namespace CqrsVibe
     {
         object ResolveService(Type type);
 
+        bool TryResolveService(Type type, out object service);
+
         IEnumerable<object> ResolveServices(Type type);
     }
 

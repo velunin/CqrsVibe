@@ -7,34 +7,23 @@ using NUnit.Framework;
 namespace CqrsVibe.Tests
 {
     [TestFixture]
-    public class EventProcessingTests
+    public class EventProcessingTests : BaseTest
     {
-        private readonly IDependencyResolverAccessor _resolverAccessor =
-            new DependencyResolverAccessor(null);
-
         [Test]
         public async Task Should_process_event()
         {
-            _resolverAccessor.Current = new DependencyResolver(multipleHandlerFactory: () =>
-            {
-                return new object[]
-                {
-                    new SomeEventHandler(),
-                    new SomeEventHandler2()
-                };
-            });
-
-            var dispatcher = new EventDispatcher(_resolverAccessor);
+            var dispatcher = new EventDispatcher(ResolverAccessor);
 
             await dispatcher.DispatchAsync(new SomeEvent());
 
             Assert.Pass();
         }
 
-        private class SomeEvent
+        private struct SomeEvent
         {
         }
 
+        // ReSharper disable once UnusedType.Local
         private class SomeEventHandler : IEventHandler<SomeEvent>
         {
             public Task HandleAsync(IEventHandlingContext<SomeEvent> context, CancellationToken cancellationToken = default)
@@ -43,6 +32,7 @@ namespace CqrsVibe.Tests
             }
         }
         
+        // ReSharper disable once UnusedType.Local
         private class SomeEventHandler2 : IEventHandler<SomeEvent>
         {
             public Task HandleAsync(IEventHandlingContext<SomeEvent> context, CancellationToken cancellationToken = default)

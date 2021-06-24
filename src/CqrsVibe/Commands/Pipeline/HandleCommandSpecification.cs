@@ -29,10 +29,12 @@ namespace CqrsVibe.Commands.Pipeline
 
                 var commandHandlerInstance = _resolverAccessor.Current.ResolveService(commandHandlerInvoker.HandlerInterface);
                 
-                return commandContext.Result = commandHandlerInvoker.HandleAsync(
+                commandContext.SetResult(commandHandlerInvoker.HandleAsync(
                     commandHandlerInstance,
                     context,
-                    context.CancellationToken);
+                    context.CancellationToken));
+
+                return commandContext.Result;
             }));
         }
 

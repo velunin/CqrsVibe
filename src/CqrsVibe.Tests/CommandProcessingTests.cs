@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CqrsVibe.Commands;
 using CqrsVibe.Commands.Pipeline;
 using GreenPipes;
+using Moq;
 using NUnit.Framework;
 
 namespace CqrsVibe.Tests
@@ -90,7 +91,41 @@ namespace CqrsVibe.Tests
             
             Assert.AreEqual(expectedResult, exception.Message);
         }
-        
+
+        [Test]
+        public async Task Should_process_pipeline_for_specified_command_in_correct_order()
+        {
+            var traceMock = new Mock<ITraceService>(MockBehavior.Strict);
+            var s = new MockSequence();
+            var processor = new CommandProcessor(ResolverAccessor, cfg =>
+            {
+                cfg.UseForCommand<SomeCommand>(c =>
+                {
+                    c.UseInlineFilter(async (context, next) =>
+                    {
+                        traceMock.Object.BeforeHandle();
+                        await next.Send(context);
+                        traceMock.Object.AfterHandle();
+                    });
+                });
+                cfg.UseInlineFilter((context, next) =>
+                {
+                    traceMock.Object.Handle();
+                    return Task.CompletedTask;
+                });
+            });
+
+            traceMock.InSequence(s).Setup(m => m.BeforeHandle());
+            traceMock.InSequence(s).Setup(m => m.Handle());
+            traceMock.InSequence(s).Setup(m => m.AfterHandle());
+
+            await processor.ProcessAsync(new SomeCommand());
+
+            traceMock.Verify(m=>m.BeforeHandle());
+            traceMock.Verify(m=>m.Handle());
+            traceMock.Verify(m=>m.AfterHandle());
+        }
+
         private class SomeCommand : ICommand
         {
         }
@@ -149,5 +184,12 @@ namespace CqrsVibe.Tests
                 throw new InvalidOperationException(context.Command.ExceptionText);
             }
         }
+    }
+
+    public interface ITraceService
+    {
+        void BeforeHandle();
+        void Handle();
+        void AfterHandle();
     }
 }

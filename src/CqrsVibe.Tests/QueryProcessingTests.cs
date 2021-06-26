@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
 using GreenPipes;
+using Moq;
 using NUnit.Framework;
 
 namespace CqrsVibe.Tests
@@ -79,6 +80,40 @@ namespace CqrsVibe.Tests
             });
             
             Assert.AreEqual(expectedResult, exception.Message);
+        }
+
+        [Test]
+        public async Task Should_process_pipeline_for_specified_query_in_correct_order()
+        {
+            var traceMock = new Mock<ITraceService>(MockBehavior.Strict);
+            var s = new MockSequence();
+            var queryService = new QueryService(ResolverAccessor, cfg =>
+            {
+                cfg.UseForQuery<SomeQuery>(c =>
+                {
+                    c.UseInlineFilter(async (context, next) =>
+                    {
+                        traceMock.Object.BeforeHandle();
+                        await next.Send(context);
+                        traceMock.Object.AfterHandle();
+                    });
+                });
+                cfg.UseInlineFilter((context, next) =>
+                {
+                    traceMock.Object.Handle();
+                    return next.Send(context);
+                });
+            });
+
+            traceMock.InSequence(s).Setup(m => m.BeforeHandle());
+            traceMock.InSequence(s).Setup(m => m.Handle());
+            traceMock.InSequence(s).Setup(m => m.AfterHandle());
+
+            await queryService.QueryAsync(new SomeQuery());
+
+            traceMock.Verify(m=>m.BeforeHandle());
+            traceMock.Verify(m=>m.Handle());
+            traceMock.Verify(m=>m.AfterHandle());
         }
 
         private class SomeQuery : IQuery<string>

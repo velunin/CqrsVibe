@@ -3,8 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Authors>Vsevolod Elunin</Authors>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageVersion>1.0.0-alpha</PackageVersion>
+    <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/velunin/CqrsVibe</RepositoryUrl>
     <PackageTags>CQRS;Mediator;Commands;Queries</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CqrsVibe.ContextAbstractions;
 using GreenPipes;
 
 namespace CqrsVibe.Events.Pipeline

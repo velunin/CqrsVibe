@@ -29,12 +29,12 @@ namespace CqrsVibe.Queries.Pipeline
 
                 var queryHandlerInstance = _resolverAccessor.Current.ResolveService(queryHandlerInvoker.HandlerInterface);
 
-                queryContext.SetResult(queryHandlerInvoker.HandleAsync(
+                queryContext.SetResultTask(queryHandlerInvoker.HandleAsync(
                     queryHandlerInstance,
                     context,
                     context.CancellationToken));
 
-                return queryContext.Result;
+                return queryContext.ResultTask;
             }));
         }
 

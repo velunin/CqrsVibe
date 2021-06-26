@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using CqrsVibe.Commands;
 using CqrsVibe.Commands.Pipeline;
+using CqrsVibe.ContextAbstractions;
 using CqrsVibe.FluentValidation.Extensions;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
@@ -57,8 +59,7 @@ namespace CqrsVibe.FluentValidation
 
                             context.Command.TryGetResultType(out var resultType);
 
-                            context.SetResult(
-                                ValidationResultTaskFactory.Create(validationState, resultType));
+                            ((IResultingHandlingContext)context).SetResult(Activator.CreateInstance(resultType, validationState));
 
                             return;
                         }
@@ -104,10 +105,8 @@ namespace CqrsVibe.FluentValidation
                             var validationState = ValidationState.ErrorState(validationResult);
 
                             context.Query.TryGetResultType(out var resultType);
-
-                            context.SetResult(
-                                ValidationResultTaskFactory.Create(validationState, resultType));
-
+                    
+                            context.SetResult(Activator.CreateInstance(resultType, validationState));
                             return;
                         }
                         break;

@@ -1,4 +1,9 @@
-# CqrsVibe
+# CqrsVibe 
+
+![ci](https://github.com/velunin/cqrsvibe/actions/workflows/runTests.yml/badge.svg)
+[![nuget version](https://img.shields.io/nuget/v/CqrsVibe?label=nuget)](https://www.nuget.org/packages/CqrsVibe)
+![license](https://img.shields.io/github/license/velunin/cqrsvibe)  
+
 CqrsVibe is an implementation of CQRS with pipelines via GreenPipes
 
 ## Usage

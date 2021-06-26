@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CqrsVibe.ContextAbstractions;
 using GreenPipes;
 using GreenPipes.Filters;
 
@@ -21,20 +22,26 @@ namespace CqrsVibe.Commands.Pipeline
         {
             builder.AddFilter(new InlineFilter<ICommandHandlingContext>((context, next) =>
             {
-                var commandContext = (CommandHandlingContext) context;
-
                 var commandHandlerInvoker = _commandHandlerInvokerFactory.GetOrCreate(
-                    commandContext.GetType(), 
-                    commandContext.CommandHandlerInterface);
+                    context.GetType(), 
+                    context.CommandHandlerInterface);
 
                 var commandHandlerInstance = _resolverAccessor.Current.ResolveService(commandHandlerInvoker.HandlerInterface);
+
+                if (context is IResultingHandlingContext resultingContext)
+                {
+                    resultingContext.SetResultTask(commandHandlerInvoker.HandleAsync(
+                        commandHandlerInstance,
+                        context,
+                        context.CancellationToken));
+
+                    return resultingContext.ResultTask;
+                }
                 
-                commandContext.SetResult(commandHandlerInvoker.HandleAsync(
+                return commandHandlerInvoker.HandleAsync(
                     commandHandlerInstance,
                     context,
-                    context.CancellationToken));
-
-                return commandContext.Result;
+                    context.CancellationToken);
             }));
         }
 

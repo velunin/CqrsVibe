@@ -1,8 +1,7 @@
 using System.Threading;
-using System.Threading.Tasks;
 using GreenPipes;
 
-namespace CqrsVibe
+namespace CqrsVibe.ContextAbstractions
 {
     public abstract class BaseHandlingContext : BasePipeContext, IHandlingContext
     {
@@ -11,17 +10,5 @@ namespace CqrsVibe
         }
         
         public IDependencyResolver ContextServices { get; internal set; }
-    }
-
-    public interface IHandlingContext : PipeContext
-    {
-        IDependencyResolver ContextServices { get; }
-    }
-
-    public interface IResultingHandlingContext
-    {
-        Task Result { get; }
-        
-        void SetResult(Task result);
     }
 }

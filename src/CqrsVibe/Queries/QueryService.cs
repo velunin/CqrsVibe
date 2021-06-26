@@ -53,7 +53,7 @@ namespace CqrsVibe.Queries
             var context = QueryContextFactory.Create(query, queryHandlerType, cancellationToken);
 
             await _queryPipe.Send(context);
-            return ((Task<TResult>) context.Result).Result;
+            return ((Task<TResult>) context.ResultTask).Result;
         }
         
         internal static class QueryContextFactory
@@ -62,8 +62,8 @@ namespace CqrsVibe.Queries
                 ContextConstructorInvokers =
                     new ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryHandlingContext>>();
             
-            public static QueryHandlingContext Create(
-                IQuery query, 
+            public static QueryHandlingContext Create<TResult>(
+                IQuery<TResult> query, 
                 Type handlerType,
                 CancellationToken cancellationToken)
             {
@@ -71,16 +71,16 @@ namespace CqrsVibe.Queries
 
                 if (!ContextConstructorInvokers.TryGetValue(queryType, out var contextConstructorInvoker))
                 {
-                    contextConstructorInvoker = CreateContextConstructorInvoker(queryType);
+                    contextConstructorInvoker = CreateContextConstructorInvoker(queryType,typeof(TResult));
                     ContextConstructorInvokers.TryAdd(queryType, contextConstructorInvoker);
                 }
 
                 return contextConstructorInvoker(query, handlerType, cancellationToken);
             }
 
-            private static Func<IQuery,Type,CancellationToken,QueryHandlingContext> CreateContextConstructorInvoker(Type queryType)
+            private static Func<IQuery,Type,CancellationToken,QueryHandlingContext> CreateContextConstructorInvoker(Type queryType, Type resultType)
             {
-                var contextType = typeof(QueryHandlingContext<>).MakeGenericType(queryType);
+                var contextType = typeof(QueryHandlingContext<,>).MakeGenericType(queryType,resultType);
                 var contextConstructorInfo = contextType.GetConstructor(
                     BindingFlags.Public | BindingFlags.Instance,
                     null,

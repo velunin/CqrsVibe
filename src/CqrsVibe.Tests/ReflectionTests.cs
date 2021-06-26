@@ -18,6 +18,7 @@ namespace CqrsVibe.Tests
             var context = CommandProcessor.CommandContextFactory.Create(
                 new SomeCommand(), 
                 typeof(ICommandHandler<>).MakeGenericType(typeof(SomeCommand)),
+                resultType:null,
                 CancellationToken.None);
 
             Assert.AreEqual(typeof(Commands.Pipeline.CommandHandlingContext<SomeCommand>), context.GetType());
@@ -31,7 +32,7 @@ namespace CqrsVibe.Tests
                 typeof(IQueryHandler<,>).MakeGenericType(typeof(SomeQuery), typeof(string)),
                 CancellationToken.None);
 
-            Assert.AreEqual(typeof(QueryHandlingContext<SomeQuery>), context.GetType());
+            Assert.AreEqual(typeof(QueryHandlingContext<SomeQuery,string>), context.GetType());
         }
         
         [Test]

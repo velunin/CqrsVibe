@@ -51,38 +51,63 @@ namespace CqrsVibe.Events
                 _eventHandlerTypesCache.TryAdd(eventType, eventHandlerType);
             }
 
-            var context = EventContextFactory.Create(@event, eventHandlerType, cancellationToken);
+            var contextConstructor = EventContextCtorFactory.GetOrCreate(eventType);
+            var context = contextConstructor.Construct(@event, eventHandlerType, cancellationToken);
 
             return _eventHandlePipe.Send(context);
         }
 
-        internal static class EventContextFactory
+        internal static class EventContextCtorFactory
         {
-            private static readonly
-                ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>
-                ContextConstructorInvokers =
-                    new ConcurrentDictionary<Type, Func<object, Type, CancellationToken, EventHandlingContext>>();
-                    
-            public static EventHandlingContext Create(
-                object @event, 
-                Type handlerInterface,
-                CancellationToken cancellationToken)
-            {
-                var eventType = @event.GetType();
+            private static readonly ConcurrentDictionary<Type, EventContextConstructor>
+                ContextConstructorsCache =
+                    new ConcurrentDictionary<Type, EventContextConstructor>();
 
-                if (!ContextConstructorInvokers.TryGetValue(eventType, out var contextConstructorInvoker))
+            public static EventContextConstructor GetOrCreate(Type eventType)
+            {
+                if (!ContextConstructorsCache.TryGetValue(eventType, out var contextConstructor))
                 {
-                    contextConstructorInvoker = CreateContextConstructorInvoker(eventType);
-                    ContextConstructorInvokers.TryAdd(eventType, contextConstructorInvoker);
+                    contextConstructor = EventContextConstructor.Compile(eventType);
+                    ContextConstructorsCache.TryAdd(eventType, contextConstructor);
                 }
 
-                return contextConstructorInvoker(@event, handlerInterface, cancellationToken);
+                return contextConstructor;
+            }
+        }
+
+        internal readonly struct EventContextConstructor
+        {
+            private readonly Func<object, Type, CancellationToken, IEventHandlingContext> _ctorInvoker;
+
+            private EventContextConstructor(
+                Type contextType,
+                Func<object, Type, CancellationToken, IEventHandlingContext> ctorInvoker)
+            {
+                ContextType = contextType;
+                _ctorInvoker = ctorInvoker;
             }
 
-            private static Func<object, Type, CancellationToken, EventHandlingContext> CreateContextConstructorInvoker(
-                Type eventType)
+            public Type ContextType { get; }
+
+            public IEventHandlingContext Construct(
+                object @event, 
+                Type handlerType,
+                CancellationToken cancellationToken)
+            {
+                return _ctorInvoker(@event, handlerType, cancellationToken);
+            }
+
+            public static EventContextConstructor Compile(Type eventType)
             {
                 var contextType = typeof(EventHandlingContext<>).MakeGenericType(eventType);
+
+                return new EventContextConstructor(contextType, CompileCtorInvoker(eventType, contextType));
+            }
+
+            private static Func<object, Type, CancellationToken, IEventHandlingContext> CompileCtorInvoker(
+                Type eventType, 
+                Type contextType)
+            {
                 var contextConstructorInfo = contextType.GetConstructor(
                     BindingFlags.Public | BindingFlags.Instance,
                     null,

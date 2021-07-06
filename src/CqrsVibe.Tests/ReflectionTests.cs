@@ -15,10 +15,12 @@ namespace CqrsVibe.Tests
         [Test]
         public void Should_create_specific_command_context()
         {
-            var context = CommandProcessor.CommandContextFactory.Create(
+            var contextConstructor = CommandProcessor.CommandContextCtorFactory.GetOrCreate(
+                typeof(SomeCommand), 
+                resultType:null);
+            var context = contextConstructor.Construct(
                 new SomeCommand(), 
                 typeof(ICommandHandler<>).MakeGenericType(typeof(SomeCommand)),
-                resultType:null,
                 CancellationToken.None);
 
             Assert.AreEqual(typeof(Commands.Pipeline.CommandHandlingContext<SomeCommand>), context.GetType());
@@ -27,7 +29,9 @@ namespace CqrsVibe.Tests
         [Test]
         public void Should_create_specific_query_context()
         {
-            var context = QueryService.QueryContextFactory.Create(
+            var contextConstructor =
+                QueryService.QueryContextCtorFactory.GetOrCreate(typeof(SomeQuery), typeof(string));
+            var context = contextConstructor.Construct(
                 new SomeQuery(), 
                 typeof(IQueryHandler<,>).MakeGenericType(typeof(SomeQuery), typeof(string)),
                 CancellationToken.None);
@@ -38,7 +42,8 @@ namespace CqrsVibe.Tests
         [Test]
         public void Should_create_specific_event_context()
         {
-            var context = EventDispatcher.EventContextFactory.Create(
+            var contextConstructor = EventDispatcher.EventContextCtorFactory.GetOrCreate(typeof(SomeEvent));
+            var context = contextConstructor.Construct(
                 new SomeEvent(), 
                 typeof(IEventHandler<>).MakeGenericType(typeof(SomeEvent)),
                 CancellationToken.None);

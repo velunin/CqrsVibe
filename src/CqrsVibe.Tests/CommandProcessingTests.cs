@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Commands;
@@ -17,7 +18,7 @@ namespace CqrsVibe.Tests
         public async Task Should_process_command_without_result()
         {
             var processor = new CommandProcessor(ResolverAccessor);
-            
+
             await processor.ProcessAsync(new SomeCommand());
 
             Assert.Pass();
@@ -45,7 +46,7 @@ namespace CqrsVibe.Tests
                     cfg.UseExecute(_ => pipelineForSomeCommandExecuted = true));
 
                 configurator.UseForCommand<AnotherCommand>(cfg =>
-                    cfg.UseExecute(_ =>  pipelineForAnotherCommandExecuted = true));
+                    cfg.UseExecute(_ => pipelineForAnotherCommandExecuted = true));
             });
 
             await processor.ProcessAsync(new SomeCommand());
@@ -53,7 +54,7 @@ namespace CqrsVibe.Tests
             Assert.IsTrue(pipelineForSomeCommandExecuted);
             Assert.IsFalse(pipelineForAnotherCommandExecuted);
         }
-        
+
         [Test]
         public async Task Should_execute_configured_pipeline_for_specific_command_types()
         {
@@ -73,7 +74,7 @@ namespace CqrsVibe.Tests
             });
 
             await processor.ProcessAsync(new SomeCommand());
-            
+
             Assert.IsTrue(pipelineForSomeCommandExecuted);
             Assert.IsFalse(pipelineForAnotherCommandExecuted);
         }

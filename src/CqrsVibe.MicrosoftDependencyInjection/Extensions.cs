@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CqrsVibe.Commands;
@@ -39,48 +40,79 @@ namespace CqrsVibe.MicrosoftDependencyInjection
         }
 
         public static IServiceCollection AddCqrsVibeHandlers(
-            this IServiceCollection serviceCollection,
+            this IServiceCollection services,
             ServiceLifetime lifetime = ServiceLifetime.Scoped,
-            Assembly[] fromAssemblies = null)
+            Assembly[] fromAssemblies = null,
+            bool warmUpHandlerInvokersCache = true)
         {
             if (fromAssemblies == null || !fromAssemblies.Any())
             {
                 fromAssemblies = AppDomain.CurrentDomain.GetAssemblies();
             }
-            
-            serviceCollection.Scan(scan =>
-                scan.FromAssemblies(fromAssemblies)
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IQueryHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithLifetime(lifetime));
 
-            serviceCollection.Scan(scan =>
-                scan.FromAssemblies(fromAssemblies)
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(ICommandHandler<,>)))
-                    .AsImplementedInterfaces()
-                    .WithLifetime(lifetime));
+            services
+                .AddCqrsVibeCommandHandlers(lifetime, fromAssemblies, warmUpHandlerInvokersCache)
+                .AddCqrsVibeQueryHandlers(lifetime, fromAssemblies, warmUpHandlerInvokersCache)
+                .AddCqrsVibeEventHandlers(lifetime, fromAssemblies, warmUpHandlerInvokersCache);
 
-            serviceCollection.Scan(scan =>
-                scan.FromAssemblies(fromAssemblies)
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(ICommandHandler<>)))
-                    .AsImplementedInterfaces()
-                    .WithLifetime(lifetime));
+            return services;
+        }
 
-            serviceCollection.Scan(scan =>
-                scan.FromAssemblies(fromAssemblies)
-                    .AddClasses(
-                        classes => classes
-                            .AssignableTo(typeof(IEventHandler<>)))
-                    .AsImplementedInterfaces()
-                    .WithLifetime(lifetime));
-            
-            return serviceCollection;
+        public static IServiceCollection AddCqrsVibeQueryHandlers(
+            this IServiceCollection services,
+            ServiceLifetime lifetime,
+            IEnumerable<Assembly> fromAssemblies,
+            bool warmUpHandlerInvokersCache = true)
+        {
+            foreach (var handlerTypeDescriptor in AssemblyScanner.FindQueryHandlersFrom(
+                fromAssemblies,
+                warmUpHandlerInvokersCache))
+            {
+                services.Add(new ServiceDescriptor(
+                    handlerTypeDescriptor.HandlerType,
+                    handlerTypeDescriptor.ImplementationType,
+                    lifetime));
+            }
+
+            return services;
+        }
+
+        public static IServiceCollection AddCqrsVibeCommandHandlers(
+            this IServiceCollection services, 
+            ServiceLifetime lifetime,
+            IEnumerable<Assembly> fromAssemblies,
+            bool warmUpHandlerInvokersCache = true)
+        {
+            foreach (var handlerTypeDescriptor in AssemblyScanner.FindCommandHandlersFrom(
+                fromAssemblies, 
+                warmUpHandlerInvokersCache))
+            {
+                services.Add(new ServiceDescriptor(
+                    handlerTypeDescriptor.HandlerType,
+                    handlerTypeDescriptor.ImplementationType,
+                    lifetime));
+            }
+
+            return services;
+        }
+
+        public static IServiceCollection AddCqrsVibeEventHandlers(
+            this IServiceCollection services, 
+            ServiceLifetime lifetime,
+            IEnumerable<Assembly> fromAssemblies,
+            bool warmUpHandlerInvokersCache = true)
+        {
+            foreach (var handlerTypeDescriptor in AssemblyScanner.FindEventHandlersFrom(
+                fromAssemblies, 
+                warmUpHandlerInvokersCache))
+            {
+                services.Add(new ServiceDescriptor(
+                    handlerTypeDescriptor.HandlerType,
+                    handlerTypeDescriptor.ImplementationType,
+                    lifetime));
+            }
+
+            return services;
         }
 
         public static void SetToHandlerResolverAccessor(this IServiceProvider serviceProvider)

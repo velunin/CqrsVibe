@@ -8,7 +8,6 @@ namespace CqrsVibe
 {
     internal class SetDependencyResolverSpecification<TContext> : IPipeSpecification<TContext>
         where TContext : class, IHandlingContext
-
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
 

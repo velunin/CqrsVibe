@@ -9,12 +9,10 @@ namespace CqrsVibe.Queries.Pipeline
     internal class HandleQuerySpecification : IPipeSpecification<IQueryHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
-        private readonly HandlerInvokerFactory<IQueryHandlingContext> _queryHandlerInvokerFactory;
 
         public HandleQuerySpecification(IDependencyResolverAccessor resolverAccessor)
         {
             _resolverAccessor = resolverAccessor ?? throw new ArgumentNullException(nameof(resolverAccessor));
-            _queryHandlerInvokerFactory = new HandlerInvokerFactory<IQueryHandlingContext>();
         }
 
         public void Apply(IPipeBuilder<IQueryHandlingContext> builder)
@@ -23,7 +21,7 @@ namespace CqrsVibe.Queries.Pipeline
             {
                 var queryContext = (QueryHandlingContext) context;
       
-                var queryHandlerInvoker = _queryHandlerInvokerFactory.GetOrCreate(
+                var queryHandlerInvoker = HandlerInvokerFactory<IQueryHandlingContext>.GetOrCreate(
                     queryContext.GetType(), 
                     queryContext.QueryHandlerInterface);
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using CqrsVibe.Commands;
 using CqrsVibe.Commands.Pipeline;
 using CqrsVibe.ContextAbstractions;

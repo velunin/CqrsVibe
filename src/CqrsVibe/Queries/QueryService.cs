@@ -49,38 +49,65 @@ namespace CqrsVibe.Queries
                 queryHandlerType = typeof(IQueryHandler<,>).MakeGenericType(queryType, typeof(TResult));
                 _queryHandlerTypesCache.TryAdd(queryType, queryHandlerType);
             }
-            
-            var context = QueryContextFactory.Create(query, queryHandlerType, cancellationToken);
+
+            var contextConstructor = QueryContextCtorFactory.GetOrCreate(queryType, typeof(TResult));
+            var context = contextConstructor.Construct(query, queryHandlerType, cancellationToken);
 
             await _queryPipe.Send(context);
             return ((Task<TResult>) context.ResultTask).Result;
         }
-        
-        internal static class QueryContextFactory
+
+        internal static class QueryContextCtorFactory
         {
-            private static readonly ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryHandlingContext>>
-                ContextConstructorInvokers =
-                    new ConcurrentDictionary<Type, Func<IQuery, Type, CancellationToken, QueryHandlingContext>>();
-            
-            public static QueryHandlingContext Create<TResult>(
-                IQuery<TResult> query, 
+            private static readonly ConcurrentDictionary<Type, QueryContextConstructor>
+                ContextConstructorsCache =
+                    new ConcurrentDictionary<Type, QueryContextConstructor>();
+
+            public static QueryContextConstructor GetOrCreate(Type queryType, Type resultType)
+            {
+                if (!ContextConstructorsCache.TryGetValue(queryType, out var contextConstructor))
+                {
+                    contextConstructor = QueryContextConstructor.Compile(queryType, resultType);
+                    ContextConstructorsCache.TryAdd(queryType, contextConstructor);
+                }
+
+                return contextConstructor;
+            }
+        }
+
+        internal readonly struct QueryContextConstructor
+        {
+            private readonly Func<IQuery, Type, CancellationToken, IQueryHandlingContext> _ctorInvoker;
+
+            private QueryContextConstructor(
+                Type contextType,
+                Func<IQuery, Type, CancellationToken, IQueryHandlingContext> ctorInvoker)
+            {
+                ContextType = contextType;
+                _ctorInvoker = ctorInvoker;
+            }
+
+            public Type ContextType { get; }
+
+            public IQueryHandlingContext Construct(
+                IQuery query, 
                 Type handlerType,
                 CancellationToken cancellationToken)
             {
-                var queryType = query.GetType();
-
-                if (!ContextConstructorInvokers.TryGetValue(queryType, out var contextConstructorInvoker))
-                {
-                    contextConstructorInvoker = CreateContextConstructorInvoker(queryType,typeof(TResult));
-                    ContextConstructorInvokers.TryAdd(queryType, contextConstructorInvoker);
-                }
-
-                return contextConstructorInvoker(query, handlerType, cancellationToken);
+                return _ctorInvoker(query, handlerType, cancellationToken);
             }
 
-            private static Func<IQuery,Type,CancellationToken,QueryHandlingContext> CreateContextConstructorInvoker(Type queryType, Type resultType)
+            public static QueryContextConstructor Compile(Type queryType, Type resultType)
             {
-                var contextType = typeof(QueryHandlingContext<,>).MakeGenericType(queryType,resultType);
+                var contextType = typeof(QueryHandlingContext<,>).MakeGenericType(queryType, resultType);
+
+                return new QueryContextConstructor(contextType, CompileCtorInvoker(queryType, contextType));
+            }
+
+            private static Func<IQuery, Type, CancellationToken, IQueryHandlingContext> CompileCtorInvoker(
+                Type queryType, 
+                Type contextType)
+            {
                 var contextConstructorInfo = contextType.GetConstructor(
                     BindingFlags.Public | BindingFlags.Instance,
                     null,

@@ -84,6 +84,6 @@ namespace CqrsVibe.Commands.Pipeline
             return _resultContainer.ContinueWith(x => (object) x.Result);
         }
 
-        public  Task ResultTask => _resultContainer;
+        public Task ResultTask => _resultContainer;
     }
 }

@@ -10,19 +10,17 @@ namespace CqrsVibe.Commands.Pipeline
     internal class HandleCommandSpecification : IPipeSpecification<ICommandHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
-        private readonly HandlerInvokerFactory<ICommandHandlingContext> _commandHandlerInvokerFactory;
 
         public HandleCommandSpecification(IDependencyResolverAccessor resolverAccessor)
         {
             _resolverAccessor = resolverAccessor ?? throw new ArgumentNullException(nameof(resolverAccessor));
-            _commandHandlerInvokerFactory = new HandlerInvokerFactory<ICommandHandlingContext>();
         }
 
         public void Apply(IPipeBuilder<ICommandHandlingContext> builder)
         {
             builder.AddFilter(new InlineFilter<ICommandHandlingContext>((context, next) =>
             {
-                var commandHandlerInvoker = _commandHandlerInvokerFactory.GetOrCreate(
+                var commandHandlerInvoker = HandlerInvokerFactory<ICommandHandlingContext>.GetOrCreate(
                     context.GetType(), 
                     context.CommandHandlerInterface);
 

@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace CqrsVibe
 {
-    internal class HandlerInvokerFactory<TContext>
+    internal static class HandlerInvokerFactory<TContext>
     {
-        private readonly ConcurrentDictionary<Type, HandlerInvoker<TContext>>
-            _handlerInvokersCache =
+        private static readonly ConcurrentDictionary<Type, HandlerInvoker<TContext>>
+            HandlerInvokersCache =
                 new ConcurrentDictionary<Type, HandlerInvoker<TContext>>();
 
-        public HandlerInvoker<TContext> GetOrCreate(Type contextType, Type handlerType)
+        public static HandlerInvoker<TContext> GetOrCreate(Type contextType, Type handlerType)
         {
-            if (!_handlerInvokersCache.TryGetValue(contextType, out var handlerInvoker))
+            if (!HandlerInvokersCache.TryGetValue(contextType, out var handlerInvoker))
             {
                 handlerInvoker = CreateHandlerInvoker(
                     contextType,
                     handlerType);
                 
-                _handlerInvokersCache.TryAdd(contextType, handlerInvoker);
+                HandlerInvokersCache.TryAdd(contextType, handlerInvoker);
             }
 
             return handlerInvoker;

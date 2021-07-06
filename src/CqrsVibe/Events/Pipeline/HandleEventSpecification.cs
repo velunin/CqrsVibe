@@ -10,12 +10,10 @@ namespace CqrsVibe.Events.Pipeline
     internal class HandleEventSpecification : IPipeSpecification<IEventHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
-        private readonly HandlerInvokerFactory<IEventHandlingContext> _eventHandlerInvokerFactory;
 
         public HandleEventSpecification(IDependencyResolverAccessor resolverAccessor)
         {
             _resolverAccessor = resolverAccessor ?? throw new ArgumentNullException(nameof(resolverAccessor));
-            _eventHandlerInvokerFactory = new HandlerInvokerFactory<IEventHandlingContext>();
         }
 
         public void Apply(IPipeBuilder<IEventHandlingContext> builder)
@@ -24,7 +22,7 @@ namespace CqrsVibe.Events.Pipeline
             {
                 var eventContext = (EventHandlingContext) context;  
       
-                var eventHandlerInvoker = _eventHandlerInvokerFactory.GetOrCreate(
+                var eventHandlerInvoker = HandlerInvokerFactory<IEventHandlingContext>.GetOrCreate(
                     eventContext.GetType(), 
                     eventContext.EventHandlerInterface);
 
@@ -39,7 +37,7 @@ namespace CqrsVibe.Events.Pipeline
                 context.CancellationToken.Register(
                     () => tcs.TrySetCanceled(), 
                     false);
-                
+
                 await await Task.WhenAny(
                     Task.WhenAll(handleTasks),
                     tcs.Task);

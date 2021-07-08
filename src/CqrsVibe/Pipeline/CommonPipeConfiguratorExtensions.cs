@@ -2,6 +2,8 @@ using System;
 using System.Linq.Expressions;
 using CqrsVibe.Commands.Pipeline;
 using CqrsVibe.ContextAbstractions;
+using CqrsVibe.Events.Pipeline;
+using CqrsVibe.Queries.Pipeline;
 using GreenPipes;
 
 namespace CqrsVibe.Pipeline
@@ -32,6 +34,20 @@ namespace CqrsVibe.Pipeline
             IDependencyResolverAccessor resolverAccessor)
         {
             configurator.AddPipeSpecification(new HandleCommandSpecification(resolverAccessor));
+        }
+
+        internal static void UseHandleQuery(
+            this IPipeConfigurator<IQueryHandlingContext> configurator,
+            IDependencyResolverAccessor resolverAccessor)
+        {
+            configurator.AddPipeSpecification(new HandleQuerySpecification(resolverAccessor));
+        }
+
+        internal static void UseHandleEvent(
+            this IPipeConfigurator<IEventHandlingContext> configurator,
+            IDependencyResolverAccessor resolverAccessor)
+        {
+            configurator.AddPipeSpecification(new HandleEventSpecification(resolverAccessor));
         }
     }
 }

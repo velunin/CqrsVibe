@@ -28,11 +28,11 @@ namespace CqrsVibe.Queries
             
             _queryPipe = Pipe.New<IQueryHandlingContext>(pipeConfigurator =>
             {
-                pipeConfigurator.AddPipeSpecification(new SetDependencyResolverSpecification<IQueryHandlingContext>(resolverAccessor));
+                pipeConfigurator.UseDependencyResolver(resolverAccessor);
                 
                 configurePipeline?.Invoke(pipeConfigurator);
                 
-                pipeConfigurator.AddPipeSpecification(new HandleQuerySpecification(resolverAccessor));
+                pipeConfigurator.UseHandleQuery(resolverAccessor);
             });
         }
 

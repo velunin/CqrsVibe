@@ -28,12 +28,11 @@ namespace CqrsVibe.Events
             
             _eventHandlePipe = Pipe.New<IEventHandlingContext>(pipeConfigurator =>
             {
-                pipeConfigurator.AddPipeSpecification(
-                    new SetDependencyResolverSpecification<IEventHandlingContext>(resolverAccessor));
+                pipeConfigurator.UseDependencyResolver(resolverAccessor);
                 
                 configurePipeline?.Invoke(pipeConfigurator);
                 
-                pipeConfigurator.AddPipeSpecification(new HandleEventSpecification(resolverAccessor));
+                pipeConfigurator.UseHandleEvent(resolverAccessor);
             });
         }
 

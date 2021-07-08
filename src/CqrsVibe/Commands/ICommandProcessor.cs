@@ -1,9 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using GreenPipes;
 
 namespace CqrsVibe.Commands
 {
-    public interface ICommandProcessor
+    public interface ICommandProcessor : IProbeSite
     {
         Task ProcessAsync(ICommand command, CancellationToken cancellationToken = default);
 

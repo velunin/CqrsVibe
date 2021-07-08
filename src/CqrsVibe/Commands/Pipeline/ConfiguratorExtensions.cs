@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CqrsVibe.Pipeline;
 using GreenPipes;
 
 namespace CqrsVibe.Commands.Pipeline

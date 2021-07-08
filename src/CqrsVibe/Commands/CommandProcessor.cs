@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Commands.Pipeline;
 using CqrsVibe.ContextAbstractions;
+using CqrsVibe.Pipeline;
 using GreenPipes;
 
 namespace CqrsVibe.Commands
@@ -28,12 +29,11 @@ namespace CqrsVibe.Commands
 
             _commandPipe = Pipe.New<ICommandHandlingContext>(pipeConfigurator =>
             {
-                pipeConfigurator.AddPipeSpecification(
-                    new SetDependencyResolverSpecification<ICommandHandlingContext>(resolverAccessor));
+                pipeConfigurator.UseDependencyResolver(resolverAccessor);
 
                 configurePipeline?.Invoke(pipeConfigurator);
 
-                pipeConfigurator.AddPipeSpecification(new HandleCommandSpecification(resolverAccessor));
+                pipeConfigurator.UseHandleCommand(resolverAccessor);
             });
         }
 
@@ -81,6 +81,13 @@ namespace CqrsVibe.Commands
             var resultingContext = (IResultingHandlingContext) context;
             
             return ((Task<TResult>) resultingContext.ResultTask).Result;
+        }
+
+        public void Probe(ProbeContext context)
+        {
+            var scope = context.CreateScope("commandProcessor");
+
+            _commandPipe.Probe(scope.CreateScope("commandPipe"));
         }
 
         internal static class CommandContextCtorFactory

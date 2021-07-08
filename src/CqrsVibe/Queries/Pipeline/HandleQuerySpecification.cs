@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using GreenPipes;
 using GreenPipes.Filters;
 
@@ -17,28 +18,45 @@ namespace CqrsVibe.Queries.Pipeline
 
         public void Apply(IPipeBuilder<IQueryHandlingContext> builder)
         {
-            builder.AddFilter(new InlineFilter<IQueryHandlingContext>((context, next) =>
-            {
-                var queryContext = (QueryHandlingContext) context;
-      
-                var queryHandlerInvoker = HandlerInvokerFactory<IQueryHandlingContext>.GetOrCreate(
-                    queryContext.GetType(), 
-                    queryContext.QueryHandlerInterface);
-
-                var queryHandlerInstance = _resolverAccessor.Current.ResolveService(queryHandlerInvoker.HandlerInterface);
-
-                queryContext.SetResultTask(queryHandlerInvoker.HandleAsync(
-                    queryHandlerInstance,
-                    context,
-                    context.CancellationToken));
-
-                return queryContext.ResultTask;
-            }));
+            builder.AddFilter(new HandleQueryFilter(_resolverAccessor));
         }
 
         public IEnumerable<ValidationResult> Validate()
         {
             return Enumerable.Empty<ValidationResult>();
+        }
+    }
+
+    internal class HandleQueryFilter : IFilter<IQueryHandlingContext>
+    {
+        private readonly IDependencyResolverAccessor _resolverAccessor;
+
+        public HandleQueryFilter(IDependencyResolverAccessor resolverAccessor)
+        {
+            _resolverAccessor = resolverAccessor;
+        }
+
+        public Task Send(IQueryHandlingContext context, IPipe<IQueryHandlingContext> next)
+        {
+            var queryContext = (QueryHandlingContext) context;
+      
+            var queryHandlerInvoker = HandlerInvokerFactory<IQueryHandlingContext>.GetOrCreate(
+                queryContext.GetType(), 
+                queryContext.QueryHandlerInterface);
+
+            var queryHandlerInstance = _resolverAccessor.Current.ResolveService(queryHandlerInvoker.HandlerInterface);
+
+            queryContext.SetResultTask(queryHandlerInvoker.HandleAsync(
+                queryHandlerInstance,
+                context,
+                context.CancellationToken));
+
+            return queryContext.ResultTask;
+        }
+
+        public void Probe(ProbeContext context)
+        {
+            context.CreateFilterScope("handleQuery");
         }
     }
 }

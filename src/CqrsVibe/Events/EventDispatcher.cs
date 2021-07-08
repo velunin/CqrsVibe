@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Events.Pipeline;
+using CqrsVibe.Pipeline;
 using GreenPipes;
 
 namespace CqrsVibe.Events
@@ -55,6 +56,13 @@ namespace CqrsVibe.Events
             var context = contextConstructor.Construct(@event, eventHandlerType, cancellationToken);
 
             return _eventHandlePipe.Send(context);
+        }
+
+        public void Probe(ProbeContext context)
+        {
+            var scope = context.CreateScope("eventDispatcher");
+
+            _eventHandlePipe.Probe(scope.CreateScope("eventHandlePipe"));
         }
 
         internal static class EventContextCtorFactory

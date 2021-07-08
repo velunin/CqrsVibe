@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using CqrsVibe.Pipeline;
 using CqrsVibe.Queries.Pipeline;
 using GreenPipes;
 
@@ -55,6 +56,13 @@ namespace CqrsVibe.Queries
 
             await _queryPipe.Send(context);
             return ((Task<TResult>) context.ResultTask).Result;
+        }
+
+        public void Probe(ProbeContext context)
+        {
+            var scope = context.CreateScope("queryService");
+
+            _queryPipe.Probe(scope.CreateScope("queryPipe"));
         }
 
         internal static class QueryContextCtorFactory

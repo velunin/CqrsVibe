@@ -10,6 +10,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Events
 {
+    /// <summary>
+    /// Implementation of <see cref="IEventDispatcher"/> interface
+    /// </summary>
     public class EventDispatcher : IEventDispatcher
     {
         private readonly IPipe<IEventHandlingContext> _eventHandlePipe;
@@ -17,6 +20,12 @@ namespace CqrsVibe.Events
         private readonly ConcurrentDictionary<Type, Type> _eventHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventDispatcher"/> class.
+        /// </summary>
+        /// <param name="resolverAccessor">Dependency resolver accessor</param>
+        /// <param name="configurePipeline">Delegate for configure event handling pipeline</param>
+        /// <exception cref="ArgumentNullException">Thrown when <see cref="resolverAccessor"/> is null</exception>
         public EventDispatcher(
             IDependencyResolverAccessor resolverAccessor, 
             Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
@@ -36,6 +45,12 @@ namespace CqrsVibe.Events
             });
         }
 
+        /// <summary>
+        /// Dispatch an event
+        /// </summary>
+        /// <param name="event">Event to handle</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TEvent">Event type</typeparam>
         public Task DispatchAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
         {
             if (@event == null)

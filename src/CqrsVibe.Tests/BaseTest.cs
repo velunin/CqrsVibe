@@ -16,18 +16,23 @@ namespace CqrsVibe.Tests
         {
             Services = new ServiceCollection();
 
-            Services.AddValidatorsFromAssembly(GetType().Assembly);
+            Services.AddValidatorsFromAssembly(GetType().Assembly, ServiceLifetime.Singleton);
             Services.AddSingleton<IDependencyResolver, DependencyResolver>();
             Services.AddSingleton<IDependencyResolverAccessor, DependencyResolverAccessor>();
 
             Services.AddCqrsVibeHandlers(ServiceLifetime.Singleton, new[] {GetType().Assembly});
+
+            Services.AddSingleton<ReflectionTests.IncorrectMiddlewares.WithoutInvokeMethod>();
+            Services.AddSingleton<ReflectionTests.IncorrectMiddlewares.WithWrongInvokeReturnType>();
+            Services.AddSingleton<ReflectionTests.IncorrectMiddlewares.WithIncorrectFirstArg>();
+            Services.AddSingleton<ReflectionTests.IncorrectMiddlewares.WithIncorrectSecondArg>();
 
             ResolverAccessor = Get<IDependencyResolverAccessor>();
         }
 
         public TService Get<TService>()
         {
-            return Services.BuildServiceProvider().GetService<TService>();
+            return Services.BuildServiceProvider(validateScopes:true).GetService<TService>();
         }
     }
 }

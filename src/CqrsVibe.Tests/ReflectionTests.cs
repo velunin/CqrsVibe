@@ -1,16 +1,23 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Commands;
+using CqrsVibe.Commands.Pipeline;
 using CqrsVibe.Events;
-using CqrsVibe.FluentValidation;
+using CqrsVibe.MicrosoftDependencyInjection;
+using CqrsVibe.Pipeline;
 using CqrsVibe.Queries;
 using CqrsVibe.Queries.Pipeline;
+using GreenPipes;
+using GreenPipes.Configurators;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using NUnit.Framework;
 
 namespace CqrsVibe.Tests
 {
     [TestFixture]
-    public class ReflectionTests
+    public class ReflectionTests : BaseTest
     {
         [Test]
         public void Should_create_specific_command_context()
@@ -23,9 +30,9 @@ namespace CqrsVibe.Tests
                 typeof(ICommandHandler<>).MakeGenericType(typeof(SomeCommand)),
                 CancellationToken.None);
 
-            Assert.AreEqual(typeof(Commands.Pipeline.CommandHandlingContext<SomeCommand>), context.GetType());
+            Assert.AreEqual(typeof(CommandHandlingContext<SomeCommand>), context.GetType());
         }
-        
+
         [Test]
         public void Should_create_specific_query_context()
         {
@@ -38,7 +45,7 @@ namespace CqrsVibe.Tests
 
             Assert.AreEqual(typeof(QueryHandlingContext<SomeQuery,string>), context.GetType());
         }
-        
+
         [Test]
         public void Should_create_specific_event_context()
         {
@@ -52,15 +59,63 @@ namespace CqrsVibe.Tests
         }
 
         [Test]
-        public void Should_create_task_with_given_either_validation_result()
+        public async Task Correct_middleware_should_be_called()
         {
-            var validationState = new ValidationState();
+            var middlewareExecuted = false;
 
-            var task = ValidationResultTaskFactory
-                    .Create(validationState, typeof(Either<string, ValidationState>)) 
-                as Task<Either<string, ValidationState>>;
+            SetUpMiddleware();
 
-            Assert.NotNull(task);
+            var scopeFactory = Get<IServiceScopeFactory>();
+            using var scope = scopeFactory.CreateScope();
+
+            scope.ServiceProvider.SetToHandlerResolverAccessor();
+
+            var pipe = Pipe.New<ICommandHandlingContext>(cfg =>
+            {
+                cfg.UseDependencyResolver(Get<IDependencyResolverAccessor>());
+                cfg.Use<ICorrectMiddleware>();
+            });
+            var context = CommandProcessor.CommandContextCtorFactory
+                .GetOrCreate(
+                    typeof(SomeCommand),
+                    resultType: null)
+                .Construct(
+                    new SomeCommand(),
+                    typeof(ICommandHandler<>).MakeGenericType(typeof(SomeCommand)),
+                    default);
+
+            await pipe.Send(context);
+
+            Assert.IsTrue(middlewareExecuted);
+
+            void SetUpMiddleware()
+            {
+                Services.AddScoped(typeof(ScopedService));
+
+                var middlewareMock = new Mock<ICorrectMiddleware>();
+                middlewareMock
+                    .Setup(x => x.Invoke(
+                        It.IsNotNull<ICommandHandlingContext>(),
+                        It.IsNotNull<IPipe<ICommandHandlingContext>>(), 
+                        It.IsNotNull<ScopedService>()))
+                    .Callback(() => middlewareExecuted = true)
+                    .Returns(Task.CompletedTask);
+
+                Services.AddSingleton(middlewareMock.Object);
+            }
+        }
+
+        [TestCase(typeof(IncorrectMiddlewares.WithoutInvokeMethod))]
+        [TestCase(typeof(IncorrectMiddlewares.WithWrongInvokeReturnType))]
+        [TestCase(typeof(IncorrectMiddlewares.WithIncorrectFirstArg))]
+        [TestCase(typeof(IncorrectMiddlewares.WithIncorrectSecondArg))]
+        public void Should_throw_exception_when_incorrect_middleware_passed(Type middlewareType)
+        {
+            var configurator = new PipeConfigurator<ICommandHandlingContext>();
+
+            configurator.Use(middlewareType);
+
+            Assert.Throws<InvalidOperationException>(() => configurator.Build());
         }
 
         private class SomeQuery : IQuery<string>
@@ -73,6 +128,49 @@ namespace CqrsVibe.Tests
 
         private class SomeEvent
         {
+        }
+
+        // ReSharper disable once MemberCanBePrivate.Global
+        public interface ICorrectMiddleware
+        {
+            Task Invoke(
+                ICommandHandlingContext context,
+                IPipe<ICommandHandlingContext> next,
+                ScopedService scopedService);
+        }
+
+        public class ScopedService
+        {
+        }
+
+        public static class IncorrectMiddlewares
+        {
+            public class WithoutInvokeMethod
+            {
+            }
+
+            public class WithWrongInvokeReturnType
+            {
+                public void Invoke(ICommandHandlingContext context, IPipe<ICommandHandlingContext> next)
+                {
+                }
+            }
+
+            public class WithIncorrectFirstArg
+            {
+                public Task Invoke(object context, IPipe<ICommandHandlingContext> next)
+                {
+                    return Task.CompletedTask;
+                }
+            }
+
+            public class WithIncorrectSecondArg
+            {
+                public Task Invoke(ICommandHandlingContext context, object next)
+                {
+                    return Task.CompletedTask;
+                }
+            }
         }
     }
 }

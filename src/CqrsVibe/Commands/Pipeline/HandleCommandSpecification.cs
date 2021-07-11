@@ -7,6 +7,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Commands.Pipeline
 {
+    /// <summary>
+    /// Specification for add <see cref="HandleCommandFilter"/> to pipeline
+    /// </summary>
     internal class HandleCommandSpecification : IPipeSpecification<ICommandHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
@@ -27,6 +30,9 @@ namespace CqrsVibe.Commands.Pipeline
         }
     }
 
+    /// <summary>
+    /// Filter for resolving and invoking command handler
+    /// </summary>
     internal class HandleCommandFilter : IFilter<ICommandHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;

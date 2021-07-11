@@ -11,6 +11,11 @@ namespace CqrsVibe.MicrosoftDependencyInjection
 {
     public static class Extensions
     {
+        /// <summary>
+        /// Registration of CqrsVibe services
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        /// <param name="configure">Delegate for configure pipelines of handling</param>
         public static IServiceCollection AddCqrsVibe(
             this IServiceCollection services, 
             Action<HandlingOptions> configure = null)
@@ -39,6 +44,13 @@ namespace CqrsVibe.MicrosoftDependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Registration of CqrsVibe handlers
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        /// <param name="lifetime">Lifetime</param>
+        /// <param name="fromAssemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
         public static IServiceCollection AddCqrsVibeHandlers(
             this IServiceCollection services,
             ServiceLifetime lifetime = ServiceLifetime.Scoped,
@@ -58,6 +70,13 @@ namespace CqrsVibe.MicrosoftDependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Registration of CqrsVibe query handlers
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        /// <param name="lifetime">Lifetime</param>
+        /// <param name="fromAssemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
         public static IServiceCollection AddCqrsVibeQueryHandlers(
             this IServiceCollection services,
             ServiceLifetime lifetime,
@@ -77,6 +96,13 @@ namespace CqrsVibe.MicrosoftDependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Registration of CqrsVibe command handlers
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        /// <param name="lifetime">Lifetime</param>
+        /// <param name="fromAssemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
         public static IServiceCollection AddCqrsVibeCommandHandlers(
             this IServiceCollection services, 
             ServiceLifetime lifetime,
@@ -96,6 +122,13 @@ namespace CqrsVibe.MicrosoftDependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Registration of CqrsVibe event handlers
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        /// <param name="lifetime">Lifetime</param>
+        /// <param name="fromAssemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
         public static IServiceCollection AddCqrsVibeEventHandlers(
             this IServiceCollection services, 
             ServiceLifetime lifetime,
@@ -115,6 +148,9 @@ namespace CqrsVibe.MicrosoftDependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// Set service provider as current resolver
+        /// </summary>
         public static void SetToHandlerResolverAccessor(this IServiceProvider serviceProvider)
         {
             serviceProvider.GetService<IDependencyResolverAccessor>().Current = new DependencyResolver(serviceProvider);

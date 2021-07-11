@@ -8,7 +8,7 @@ using GreenPipes;
 
 namespace CqrsVibe.Pipeline
 {
-    internal static class CommonPipeConfiguratorExtensions
+    internal static class ConfiguratorExtensions
     {
         public static void UseRouteFor<TRouteContext, TOriginalContext>(
             this IPipeConfigurator<TOriginalContext> originalPipeConfigurator,
@@ -18,7 +18,33 @@ namespace CqrsVibe.Pipeline
             where TOriginalContext : class, PipeContext
         {
             originalPipeConfigurator.AddPipeSpecification(
-                new SpecificRouteFilterSpecification<TRouteContext,TOriginalContext>(filter, configure));
+                new SpecificRouteFilterSpec<TRouteContext,TOriginalContext>(filter, configure));
+        }
+
+        public static void Use<TContext>(
+            this IPipeConfigurator<TContext> configurator,
+            Type middlewareType)
+            where TContext : class, IHandlingContext
+        {
+            configurator.AddPipeSpecification(new HandlingMiddlewareFilterSpec<TContext>(middlewareType));
+        }
+
+        public static void Use<TMiddleware>(
+            this IPipeConfigurator<ICommandHandlingContext> configurator)
+        {
+            configurator.Use(typeof(TMiddleware));
+        }
+
+        public static void Use<TMiddleware>(
+            this IPipeConfigurator<IQueryHandlingContext> configurator)
+        {
+            configurator.Use(typeof(TMiddleware));
+        }
+
+        public static void Use<TMiddleware>(
+            this IPipeConfigurator<IEventHandlingContext> configurator)
+        {
+            configurator.Use(typeof(TMiddleware));
         }
 
         internal static void UseDependencyResolver<TContext>(
@@ -26,7 +52,7 @@ namespace CqrsVibe.Pipeline
             IDependencyResolverAccessor resolverAccessor) 
             where TContext : class, IHandlingContext
         {
-            configurator.AddPipeSpecification(new SetDependencyResolverSpecification<TContext>(resolverAccessor));
+            configurator.AddPipeSpecification(new SetDependencyResolverSpec<TContext>(resolverAccessor));
         }
 
         internal static void UseHandleCommand(

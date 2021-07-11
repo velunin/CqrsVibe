@@ -11,7 +11,7 @@ using GreenPipes.Filters;
 
 namespace CqrsVibe.Pipeline
 {
-    internal class SpecificRouteFilterSpecification<TRouteContext, TOriginalContext> :
+    internal class SpecificRouteFilterSpec<TRouteContext, TOriginalContext> :
         IPipeSpecification<TOriginalContext>
         where TOriginalContext : class, PipeContext
         where TRouteContext : class, TOriginalContext
@@ -19,7 +19,7 @@ namespace CqrsVibe.Pipeline
         private readonly Action<IPipeConfigurator<TRouteContext>> _configureRoutePipe;
         private readonly Expression<Func<TOriginalContext, bool>> _filter;
 
-        public SpecificRouteFilterSpecification(
+        public SpecificRouteFilterSpec(
             Expression<Func<TOriginalContext, bool>> filter,
             Action<IPipeConfigurator<TRouteContext>> configureRoutePipe)
         {

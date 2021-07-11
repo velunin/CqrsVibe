@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace CqrsVibe
 {
+    /// <summary>
+    /// Factory and cache 'HandleAsync' invokers
+    /// </summary>
+    /// <typeparam name="TContext">Context type</typeparam>
     internal static class HandlerInvokerFactory<TContext>
     {
         private static readonly ConcurrentDictionary<Type, HandlerInvoker<TContext>>

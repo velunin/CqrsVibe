@@ -8,7 +8,7 @@ namespace CqrsVibe.ContextAbstractions
         protected BaseHandlingContext(CancellationToken cancellationToken) : base(cancellationToken)
         {
         }
-        
+
         public IDependencyResolver ContextServices { get; internal set; }
     }
 }

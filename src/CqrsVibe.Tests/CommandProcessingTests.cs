@@ -4,7 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using CqrsVibe.Commands;
 using CqrsVibe.Commands.Pipeline;
+using CqrsVibe.Pipeline;
+using CqrsVibe.Queries.Pipeline;
 using GreenPipes;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
 
@@ -126,6 +129,19 @@ namespace CqrsVibe.Tests
             traceMock.Verify(m=>m.AfterHandle());
         }
 
+        [Test]
+        public async Task Playground()
+        {
+            Services.AddSingleton<MyMiddleware>();
+            Services.AddSingleton<SomeService>();
+
+            var processor = new CommandProcessor(Get<IDependencyResolverAccessor>(), cfg =>
+            {
+                cfg.Use(typeof(MyMiddleware));
+            });
+
+            await processor.ProcessAsync(new SomeCommand());
+        }
         private class SomeCommand : ICommand
         {
         }
@@ -191,5 +207,31 @@ namespace CqrsVibe.Tests
         void BeforeHandle();
         void Handle();
         void AfterHandle();
+    }
+
+    public class MyMiddleware
+    {
+        private readonly SomeService _service;
+
+        public MyMiddleware(SomeService service)
+        {
+            _service = service;
+        }
+
+        public Task Invoke(
+            ICommandHandlingContext context,
+            IPipe<ICommandHandlingContext> next)
+        {
+            _service.Print();
+            return next.Send(context);
+        }
+    }
+
+    public class SomeService
+    {
+        public void Print()
+        {
+            Console.WriteLine("Hello from my middleware");
+        }
     }
 }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GreenPipes;
-using GreenPipes.Filters;
 
 namespace CqrsVibe.Queries.Pipeline
 {
+    /// <summary>
+    /// Specification for add <see cref="HandleQueryFilter"/> to pipeline
+    /// </summary>
     internal class HandleQuerySpecification : IPipeSpecification<IQueryHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
@@ -27,6 +29,9 @@ namespace CqrsVibe.Queries.Pipeline
         }
     }
 
+    /// <summary>
+    /// Filter for resolving and invoking query handlers
+    /// </summary>
     internal class HandleQueryFilter : IFilter<IQueryHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;

@@ -10,6 +10,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Queries
 {
+    /// <summary>
+    /// Implementation of <see cref="IQueryService"/> interface
+    /// </summary>
     public class QueryService : IQueryService
     {
         private readonly IPipe<IQueryHandlingContext> _queryPipe;
@@ -17,6 +20,12 @@ namespace CqrsVibe.Queries
         private readonly ConcurrentDictionary<Type, Type> _queryHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryService"/> class.
+        /// </summary>
+        /// <param name="resolverAccessor">Dependency resolver accessor</param>
+        /// <param name="configurePipeline">Delegate for configure query pipeline</param>
+        /// <exception cref="ArgumentNullException">Thrown when <see cref="resolverAccessor"/> is null</exception>
         public QueryService(
             IDependencyResolverAccessor resolverAccessor,
             Action<IPipeConfigurator<IQueryHandlingContext>> configurePipeline = null)
@@ -36,6 +45,13 @@ namespace CqrsVibe.Queries
             });
         }
 
+        /// <summary>
+        /// Executes query
+        /// </summary>
+        /// <param name="query">Query to execute</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TResult">Query result type</typeparam>
+        /// <returns>Query result</returns>
         public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
         {
             if (query == null)
@@ -65,6 +81,9 @@ namespace CqrsVibe.Queries
             _queryPipe.Probe(scope.CreateScope("queryPipe"));
         }
 
+        /// <summary>
+        /// Factory and cache for context command constructors
+        /// </summary>
         internal static class QueryContextCtorFactory
         {
             private static readonly ConcurrentDictionary<Type, QueryContextConstructor>
@@ -83,6 +102,9 @@ namespace CqrsVibe.Queries
             }
         }
 
+        /// <summary>
+        /// For invoke constructor of concrete query context in runtime
+        /// </summary>
         internal readonly struct QueryContextConstructor
         {
             private readonly Func<IQuery, Type, CancellationToken, IQueryHandlingContext> _ctorInvoker;

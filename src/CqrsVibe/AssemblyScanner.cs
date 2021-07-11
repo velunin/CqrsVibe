@@ -11,8 +11,17 @@ using CqrsVibe.Queries.Pipeline;
 
 namespace CqrsVibe
 {
+    /// <summary>
+    /// Helper for handlers finding
+    /// </summary>
     public static class AssemblyScanner
     {
+        /// <summary>
+        /// Find command handlers from <see cref="assemblies"/>
+        /// </summary>
+        /// <param name="assemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
+        /// <returns>The sequence of found handlers descriptors</returns>
         public static IEnumerable<HandlerTypeDescriptor> FindCommandHandlersFrom(
             IEnumerable<Assembly> assemblies, 
             bool warmUpHandlerInvokersCache = true)
@@ -45,6 +54,12 @@ namespace CqrsVibe
             }
         }
 
+        /// <summary>
+        /// Find query handlers from <see cref="assemblies"/>
+        /// </summary>
+        /// <param name="assemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
+        /// <returns>The sequence of found handlers descriptors</returns>
         public static IEnumerable<HandlerTypeDescriptor> FindQueryHandlersFrom(
             IEnumerable<Assembly> assemblies, 
             bool warmUpHandlerInvokersCache = true)
@@ -76,6 +91,12 @@ namespace CqrsVibe
             }
         }
 
+        /// <summary>
+        /// Find event handlers from <see cref="assemblies"/>
+        /// </summary>
+        /// <param name="assemblies">Assemblies containing handlers</param>
+        /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
+        /// <returns>The sequence of found handlers descriptors</returns>
         public static IEnumerable<HandlerTypeDescriptor> FindEventHandlersFrom(
             IEnumerable<Assembly> assemblies, 
             bool warmUpHandlerInvokersCache = true)

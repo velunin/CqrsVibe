@@ -6,6 +6,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Events.Pipeline
 {
+    /// <summary>
+    /// Specification for add <see cref="HandleEventSpecification"/> to pipeline
+    /// </summary>
     internal class HandleEventSpecification : IPipeSpecification<IEventHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
@@ -26,6 +29,9 @@ namespace CqrsVibe.Events.Pipeline
         }
     }
 
+    /// <summary>
+    /// Filter for resolving and invoking event handlers
+    /// </summary>
     internal class HandleEventFilter : IFilter<IEventHandlingContext>
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;

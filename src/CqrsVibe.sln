@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CqrsVibe.MicrosoftDependenc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CqrsVibe.FluentValidation", "CqrsVibe.FluentValidation\CqrsVibe.FluentValidation.csproj", "{5442F9BD-E401-40E7-9B96-B2815AB4D27F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CqrsVibe.AspNetCore", "CqrsVibe.AspNetCore\CqrsVibe.AspNetCore.csproj", "{974C5278-A257-442B-9A66-78196EEA321E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{5442F9BD-E401-40E7-9B96-B2815AB4D27F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5442F9BD-E401-40E7-9B96-B2815AB4D27F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5442F9BD-E401-40E7-9B96-B2815AB4D27F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{974C5278-A257-442B-9A66-78196EEA321E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{974C5278-A257-442B-9A66-78196EEA321E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{974C5278-A257-442B-9A66-78196EEA321E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{974C5278-A257-442B-9A66-78196EEA321E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

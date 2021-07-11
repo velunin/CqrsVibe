@@ -5,13 +5,25 @@ using CqrsVibe.ContextAbstractions;
 
 namespace CqrsVibe.Queries.Pipeline
 {
+    /// <summary>
+    /// Base query handling context
+    /// </summary>
     public interface IQueryHandlingContext : IResultingHandlingContext
     {
+        /// <summary>
+        /// Query to handle
+        /// </summary>
         IQuery Query { get; }
     }
 
+    /// <summary>
+    /// Base query handling context
+    /// </summary>
     public interface IQueryHandlingContext<out TQuery> : IQueryHandlingContext where TQuery : IQuery
     {
+        /// <summary>
+        /// Query to handle
+        /// </summary>
         new TQuery Query { get; }
     }
     

@@ -27,5 +27,6 @@ jobs:
           dotnet nuget push CqrsVibe.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
           dotnet nuget push CqrsVibe.MicrosoftDependencyInjection.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
           dotnet nuget push CqrsVibe.FluentValidation.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
+          dotnet nuget push CqrsVibe.AspNetCore.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}

@@ -2,6 +2,11 @@ using System;
 
 namespace CqrsVibe.FluentValidation
 {
+    /// <summary>
+    /// Either monad
+    /// </summary>
+    /// <typeparam name="TLeft"></typeparam>
+    /// <typeparam name="TRight"></typeparam>
     public readonly struct Either<TLeft, TRight>
     {
         private readonly TLeft _left;

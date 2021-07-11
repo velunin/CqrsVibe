@@ -8,6 +8,9 @@ using System.Threading;
 
 namespace CqrsVibe
 {
+    /// <summary>
+    /// Abstraction of DI container for resolve handlers
+    /// </summary>
     public interface IDependencyResolver
     {
         object ResolveService(Type type);
@@ -17,6 +20,9 @@ namespace CqrsVibe
         IEnumerable<object> ResolveServices(Type type);
     }
 
+    /// <summary>
+    /// Accessor of current resolver for current asynchronous control flow
+    /// </summary>
     public interface IDependencyResolverAccessor
     {
         IDependencyResolver Current { get; set; }
@@ -26,16 +32,16 @@ namespace CqrsVibe
     {
         private static readonly AsyncLocal<IDependencyResolver> CurrentResolver = new AsyncLocal<IDependencyResolver>();
 
-        private readonly IDependencyResolver _defaultResolver;
+        private readonly IDependencyResolver _rootResolver;
 
-        public DependencyResolverAccessor(IDependencyResolver defaultResolver)
+        public DependencyResolverAccessor(IDependencyResolver rootResolverResolver)
         {
-            _defaultResolver = defaultResolver;
+            _rootResolver = rootResolverResolver;
         }
 
         public IDependencyResolver Current
         {
-            get => CurrentResolver.Value ?? _defaultResolver;
+            get => CurrentResolver.Value ?? _rootResolver;
             set => CurrentResolver.Value = value;
         }
     }

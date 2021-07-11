@@ -11,6 +11,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Commands
 {
+    /// <summary>
+    /// Implementation of <see cref="ICommandProcessor"/> interface
+    /// </summary>
     public class CommandProcessor : ICommandProcessor
     {
         private readonly IPipe<ICommandHandlingContext> _commandPipe;
@@ -18,6 +21,12 @@ namespace CqrsVibe.Commands
         private readonly ConcurrentDictionary<Type, Type> _commandHandlerTypesCache =
             new ConcurrentDictionary<Type, Type>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandProcessor"/> class.
+        /// </summary>
+        /// <param name="resolverAccessor">Dependency resolver accessor</param>
+        /// <param name="configurePipeline">Delegate for configure command pipeline</param>
+        /// <exception cref="ArgumentNullException">Thrown when <see cref="resolverAccessor"/> is null</exception>
         public CommandProcessor(
             IDependencyResolverAccessor resolverAccessor, 
             Action<IPipeConfigurator<ICommandHandlingContext>> configurePipeline = null)
@@ -37,6 +46,12 @@ namespace CqrsVibe.Commands
             });
         }
 
+
+        ///<summary>
+        /// Executes command without result
+        /// </summary>
+        /// <param name="command">Command</param>
+        /// <param name="cancellationToken"></param>
         public Task ProcessAsync(ICommand command, CancellationToken cancellationToken = default)
         {
             if (command == null)
@@ -58,6 +73,13 @@ namespace CqrsVibe.Commands
             return _commandPipe.Send(context);
         }
 
+        /// <summary>
+        /// Executes command with result
+        /// </summary>
+        /// <param name="command">Command</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TResult"></typeparam>
+        /// <returns>Command result</returns>
         public async Task<TResult> ProcessAsync<TResult>(ICommand<TResult> command,
             CancellationToken cancellationToken = default)
         {
@@ -90,6 +112,9 @@ namespace CqrsVibe.Commands
             _commandPipe.Probe(scope.CreateScope("commandPipe"));
         }
 
+        /// <summary>
+        /// Factory and cache for context command constructors
+        /// </summary>
         internal static class CommandContextCtorFactory
         {
             private static readonly ConcurrentDictionary<Type, CommandContextConstructor>
@@ -108,6 +133,9 @@ namespace CqrsVibe.Commands
             }
         }
 
+        /// <summary>
+        /// For invoke constructor of concrete command context in runtime
+        /// </summary>
         internal readonly struct CommandContextConstructor
         {
             private readonly Func<ICommand, Type, CancellationToken, ICommandHandlingContext> _ctorInvoker;

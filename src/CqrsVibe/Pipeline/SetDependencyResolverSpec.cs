@@ -6,12 +6,12 @@ using GreenPipes;
 
 namespace CqrsVibe.Pipeline
 {
-    internal class SetDependencyResolverSpecification<TContext> : IPipeSpecification<TContext>
+    internal class SetDependencyResolverSpec<TContext> : IPipeSpecification<TContext>
         where TContext : class, IHandlingContext
     {
         private readonly IDependencyResolverAccessor _resolverAccessor;
 
-        public SetDependencyResolverSpecification(IDependencyResolverAccessor resolverAccessor)
+        public SetDependencyResolverSpec(IDependencyResolverAccessor resolverAccessor)
         {
             _resolverAccessor = resolverAccessor;
         }

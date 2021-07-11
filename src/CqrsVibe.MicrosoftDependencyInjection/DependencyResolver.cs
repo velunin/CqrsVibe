@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CqrsVibe.MicrosoftDependencyInjection
 {
+    /// <summary>
+    /// Implementation of <see cref="IDependencyResolver"/> interface
+    /// </summary>
     public class DependencyResolver : IDependencyResolver
     {
         private readonly IServiceProvider _serviceProvider;

@@ -8,7 +8,7 @@ using GreenPipes;
 
 namespace CqrsVibe.Pipeline
 {
-    internal static class ConfiguratorExtensions
+    public static class ConfiguratorExtensions
     {
         public static void UseRouteFor<TRouteContext, TOriginalContext>(
             this IPipeConfigurator<TOriginalContext> originalPipeConfigurator,

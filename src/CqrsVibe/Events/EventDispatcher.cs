@@ -25,7 +25,7 @@ namespace CqrsVibe.Events
         /// </summary>
         /// <param name="resolverAccessor">Dependency resolver accessor</param>
         /// <param name="configurePipeline">Delegate for configure event handling pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="resolverAccessor"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="resolverAccessor"/> is null</exception>
         public EventDispatcher(
             IDependencyResolverAccessor resolverAccessor, 
             Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
@@ -72,6 +72,7 @@ namespace CqrsVibe.Events
             return _eventHandlePipe.Send(context);
         }
 
+        /// <inheritdoc />
         public void Probe(ProbeContext context)
         {
             var scope = context.CreateScope("eventDispatcher");

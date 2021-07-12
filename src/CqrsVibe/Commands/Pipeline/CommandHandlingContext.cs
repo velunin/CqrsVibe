@@ -21,6 +21,10 @@ namespace CqrsVibe.Commands.Pipeline
         public Type CommandHandlerInterface { get; }
     }
 
+    /// <summary>
+    /// Base command context
+    /// </summary>
+    /// <typeparam name="TCommand"></typeparam>
     public interface ICommandHandlingContext<out TCommand> : ICommandHandlingContext where TCommand : ICommand
     {
         /// <summary>
@@ -30,6 +34,11 @@ namespace CqrsVibe.Commands.Pipeline
     }
 
     // ReSharper disable once UnusedTypeParameter
+    /// <summary>
+    /// Base resulting command context
+    /// </summary>
+    /// <typeparam name="TCommand"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
     public interface ICommandHandlingContext<out TCommand, TResult> : 
         ICommandHandlingContext<TCommand>, 
         IResultingHandlingContext

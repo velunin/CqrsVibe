@@ -8,8 +8,19 @@ using GreenPipes;
 
 namespace CqrsVibe.Pipeline
 {
+    /// <summary>
+    /// Common configurator extensions
+    /// </summary>
     public static class ConfiguratorExtensions
     {
+        /// <summary>
+        /// Set route for specific context
+        /// </summary>
+        /// <param name="originalPipeConfigurator"></param>
+        /// <param name="filter"></param>
+        /// <param name="configure"></param>
+        /// <typeparam name="TRouteContext"></typeparam>
+        /// <typeparam name="TOriginalContext"></typeparam>
         public static void UseRouteFor<TRouteContext, TOriginalContext>(
             this IPipeConfigurator<TOriginalContext> originalPipeConfigurator,
             Expression<Func<TOriginalContext,bool>> filter,
@@ -21,6 +32,12 @@ namespace CqrsVibe.Pipeline
                 new SpecificRouteFilterSpec<TRouteContext,TOriginalContext>(filter, configure));
         }
 
+        /// <summary>
+        /// Set middleware
+        /// </summary>
+        /// <param name="configurator"></param>
+        /// <param name="middlewareType"></param>
+        /// <typeparam name="TContext"></typeparam>
         public static void Use<TContext>(
             this IPipeConfigurator<TContext> configurator,
             Type middlewareType)
@@ -29,18 +46,33 @@ namespace CqrsVibe.Pipeline
             configurator.AddPipeSpecification(new HandlingMiddlewareFilterSpec<TContext>(middlewareType));
         }
 
+        /// <summary>
+        /// Set middleware
+        /// </summary>
+        /// <param name="configurator"></param>
+        /// <typeparam name="TMiddleware"></typeparam>
         public static void Use<TMiddleware>(
             this IPipeConfigurator<ICommandHandlingContext> configurator)
         {
             configurator.Use(typeof(TMiddleware));
         }
 
+        /// <summary>
+        /// Set middleware
+        /// </summary>
+        /// <param name="configurator"></param>
+        /// <typeparam name="TMiddleware"></typeparam>
         public static void Use<TMiddleware>(
             this IPipeConfigurator<IQueryHandlingContext> configurator)
         {
             configurator.Use(typeof(TMiddleware));
         }
 
+        /// <summary>
+        /// Set middleware
+        /// </summary>
+        /// <param name="configurator"></param>
+        /// <typeparam name="TMiddleware"></typeparam>
         public static void Use<TMiddleware>(
             this IPipeConfigurator<IEventHandlingContext> configurator)
         {

@@ -4,6 +4,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Events
 {
+    /// <summary>
+    /// Event dispatcher
+    /// </summary>
     public interface IEventDispatcher : IProbeSite
     {
         /// <summary>

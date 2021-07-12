@@ -6,6 +6,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Events.Pipeline
 {
+    /// <summary>
+    /// Queries configurator extensions
+    /// </summary>
     public static class ConfiguratorExtensions
     {
         /// <summary>
@@ -14,7 +17,7 @@ namespace CqrsVibe.Events.Pipeline
         /// <param name="configurator">Events pipeline configurator</param>
         /// <param name="configure">Delegate for configure pipeline</param>
         /// <typeparam name="TEvent">Event type</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null</exception>
         public static void UseForEvent<TEvent>(
             this IPipeConfigurator<IEventHandlingContext> configurator, 
             Action<IPipeConfigurator<IEventHandlingContext<TEvent>>> configure)
@@ -35,7 +38,7 @@ namespace CqrsVibe.Events.Pipeline
         /// <param name="configurator">Events pipeline configurator</param>
         /// <param name="predicate">Event match predicate</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="predicate"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="predicate"/> is null</exception>
         public static void UseForEvents(
             this IPipeConfigurator<IEventHandlingContext> configurator,
             Func<object, bool> predicate,
@@ -62,7 +65,7 @@ namespace CqrsVibe.Events.Pipeline
         /// <param name="configurator">Events pipeline configurator</param>
         /// <param name="eventTypes">Event types</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="eventTypes"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="eventTypes"/> is null</exception>
         public static void UseForEvents(
             this IPipeConfigurator<IEventHandlingContext> configurator, 
             HashSet<Type> eventTypes, 
@@ -89,7 +92,7 @@ namespace CqrsVibe.Events.Pipeline
         /// <param name="configurator">Events pipeline configurator</param>
         /// <param name="eventTypes">Event types</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="eventTypes"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="eventTypes"/> is null</exception>
         public static void UseForEvents(
             this IPipeConfigurator<IEventHandlingContext> configurator, 
             IEnumerable<Type> eventTypes, 

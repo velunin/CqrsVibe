@@ -2,11 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-    	<Authors>Vsevolod Elunin</Authors>
-    	<RepositoryType>git</RepositoryType>
-    	<RepositoryUrl>https://github.com/velunin/CqrsVibe</RepositoryUrl>
-    	<PackageTags>CQRS;Mediator;Commands;Queries</PackageTags>
-    	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Authors>Vsevolod Elunin</Authors>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/velunin/CqrsVibe</RepositoryUrl>
+        <PackageTags>CQRS;Mediator;Commands;Queries</PackageTags>
+        <PackageDescription>Dependency injection extensions for CqrsVibe</PackageDescription>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

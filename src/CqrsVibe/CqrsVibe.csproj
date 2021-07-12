@@ -6,7 +6,9 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/velunin/CqrsVibe</RepositoryUrl>
     <PackageTags>CQRS;Mediator;Commands;Queries</PackageTags>
+    <PackageDescription>An implementation of CQRS with configuring pipelines via GreenPipes</PackageDescription>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -9,7 +9,7 @@ namespace CqrsVibe.AspNetCore
         {
             return app.Use((context, next) =>
             {
-                context.RequestServices.SetToHandlerResolverAccessor();
+                context.RequestServices.SetAsCurrentResolver();
                 return next();
             });
         }

@@ -17,7 +17,7 @@ namespace CqrsVibe
     public static class AssemblyScanner
     {
         /// <summary>
-        /// Find command handlers from <see cref="assemblies"/>
+        /// Find command handlers from <paramref name="assemblies"/>
         /// </summary>
         /// <param name="assemblies">Assemblies containing handlers</param>
         /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
@@ -55,7 +55,7 @@ namespace CqrsVibe
         }
 
         /// <summary>
-        /// Find query handlers from <see cref="assemblies"/>
+        /// Find query handlers from <paramref name="assemblies"/>
         /// </summary>
         /// <param name="assemblies">Assemblies containing handlers</param>
         /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
@@ -92,7 +92,7 @@ namespace CqrsVibe
         }
 
         /// <summary>
-        /// Find event handlers from <see cref="assemblies"/>
+        /// Find event handlers from <paramref name="assemblies"/>
         /// </summary>
         /// <param name="assemblies">Assemblies containing handlers</param>
         /// <param name="warmUpHandlerInvokersCache">Warm up invokers cache of found handlers</param>
@@ -167,16 +167,30 @@ namespace CqrsVibe
             return handlerType.GetGenericArguments().First();
         }
 
+        /// <summary>
+        /// Handler type descriptor
+        /// </summary>
         public readonly struct HandlerTypeDescriptor
         {
+            /// <summary>
+            /// Initializes a instance of <see cref="HandlerTypeDescriptor"/>
+            /// </summary>
+            /// <param name="handlerType"></param>
+            /// <param name="implementationType"></param>
             public HandlerTypeDescriptor(Type handlerType, Type implementationType)
             {
                 HandlerType = handlerType;
                 ImplementationType = implementationType;
             }
 
+            /// <summary>
+            /// Handler interface type
+            /// </summary>
             public Type HandlerType { get; }
 
+            /// <summary>
+            /// Handler implementation type
+            /// </summary>
             public Type ImplementationType { get; }
         }
     }

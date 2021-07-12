@@ -10,7 +10,10 @@ namespace CqrsVibe.Commands
     {
     }
 
-    //Base interface for all commands with result
+    /// <summary>
+    /// Base interface for all commands with result
+    /// </summary>
+    /// <typeparam name="TResult"></typeparam>
     public interface ICommand<out TResult> : ICommand
     {
     }

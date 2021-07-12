@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CqrsVibe.MicrosoftDependencyInjection
 {
+    /// <summary>
+    /// IServiceCollection extensions
+    /// </summary>
     public static class Extensions
     {
         /// <summary>
@@ -151,7 +154,7 @@ namespace CqrsVibe.MicrosoftDependencyInjection
         /// <summary>
         /// Set service provider as current resolver
         /// </summary>
-        public static void SetToHandlerResolverAccessor(this IServiceProvider serviceProvider)
+        public static void SetAsCurrentResolver(this IServiceProvider serviceProvider)
         {
             serviceProvider.GetService<IDependencyResolverAccessor>().Current = new DependencyResolver(serviceProvider);
         }

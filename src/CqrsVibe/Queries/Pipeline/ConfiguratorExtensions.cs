@@ -6,6 +6,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Queries.Pipeline
 {
+    /// <summary>
+    /// Queries configurator extensions
+    /// </summary>
     public static class ConfiguratorExtensions
     {
         /// <summary>
@@ -14,7 +17,7 @@ namespace CqrsVibe.Queries.Pipeline
         /// <param name="configurator">Queries pipeline configurator</param>
         /// <param name="configure">Delegate for configure pipeline</param>
         /// <typeparam name="TQuery">Query type</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null</exception>
         public static void UseForQuery<TQuery>(
             this IPipeConfigurator<IQueryHandlingContext> configurator, 
             Action<IPipeConfigurator<IQueryHandlingContext<TQuery>>> configure) 
@@ -36,7 +39,7 @@ namespace CqrsVibe.Queries.Pipeline
         /// <param name="configurator">Queries pipeline configurator</param>
         /// <param name="predicate">Query match predicate</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="predicate"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="predicate"/> is null</exception>
         public static void UseForQueries(
             this IPipeConfigurator<IQueryHandlingContext> configurator, 
             Func<IQuery, bool> predicate, 
@@ -63,7 +66,7 @@ namespace CqrsVibe.Queries.Pipeline
         /// <param name="configurator">Queries pipeline configurator</param>
         /// <param name="queryTypes">Query types</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="queryTypes"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="queryTypes"/> is null</exception>
         public static void UseForQueries(
             this IPipeConfigurator<IQueryHandlingContext> configurator, 
             HashSet<Type> queryTypes, 
@@ -90,7 +93,7 @@ namespace CqrsVibe.Queries.Pipeline
         /// <param name="configurator">Queries pipeline configurator</param>
         /// <param name="queryTypes">Query types</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="queryTypes"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="queryTypes"/> is null</exception>
         public static void UseForQueries(
             this IPipeConfigurator<IQueryHandlingContext> configurator, 
             IEnumerable<Type> queryTypes, 

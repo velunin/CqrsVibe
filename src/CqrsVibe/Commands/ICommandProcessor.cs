@@ -4,6 +4,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Commands
 {
+    /// <summary>
+    /// Command processor
+    /// </summary>
     public interface ICommandProcessor : IProbeSite
     {
         /// <summary>

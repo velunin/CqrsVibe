@@ -26,7 +26,7 @@ namespace CqrsVibe.Commands
         /// </summary>
         /// <param name="resolverAccessor">Dependency resolver accessor</param>
         /// <param name="configurePipeline">Delegate for configure command pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="resolverAccessor"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="resolverAccessor"/> is null</exception>
         public CommandProcessor(
             IDependencyResolverAccessor resolverAccessor, 
             Action<IPipeConfigurator<ICommandHandlingContext>> configurePipeline = null)
@@ -105,6 +105,7 @@ namespace CqrsVibe.Commands
             return ((Task<TResult>) resultingContext.ResultTask).Result;
         }
 
+        /// <inheritdoc />
         public void Probe(ProbeContext context)
         {
             var scope = context.CreateScope("commandProcessor");

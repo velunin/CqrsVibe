@@ -25,6 +25,12 @@ namespace CqrsVibe.Commands
     /// <typeparam name="TResult">Command result value</typeparam>
     public interface ICommandHandler<in TCommand, TResult> where TCommand : ICommand<TResult>
     {
+        /// <summary>
+        /// Handle command
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         Task<TResult> HandleAsync(ICommandHandlingContext<TCommand> context,
             CancellationToken cancellationToken = default);
     }

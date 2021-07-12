@@ -6,6 +6,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Commands.Pipeline
 {
+    /// <summary>
+    /// Command configurator extensions
+    /// </summary>
     public static class ConfiguratorExtensions
     {
         /// <summary>
@@ -14,7 +17,7 @@ namespace CqrsVibe.Commands.Pipeline
         /// <param name="configurator">Commands pipeline configurator</param>
         /// <param name="configure">Delegate for configure pipeline</param>
         /// <typeparam name="TCommand">Command type</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null</exception>
         public static void UseForCommand<TCommand>(
             this IPipeConfigurator<ICommandHandlingContext> configurator, 
             Action<IPipeConfigurator<ICommandHandlingContext<TCommand>>> configure) 
@@ -36,7 +39,7 @@ namespace CqrsVibe.Commands.Pipeline
         /// <param name="configurator">Commands pipeline configurator</param>
         /// <param name="predicate">Command match predicate</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="predicate"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="predicate"/> is null</exception>
         public static void UseForCommands(
             this IPipeConfigurator<ICommandHandlingContext> configurator, 
             Func<ICommand, bool> predicate, 
@@ -63,7 +66,7 @@ namespace CqrsVibe.Commands.Pipeline
         /// <param name="configurator">Commands pipeline configurator</param>
         /// <param name="commandTypes">Command types</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="commandTypes"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> or <paramref name="commandTypes"/> is null</exception>
         public static void UseForCommands(
             this IPipeConfigurator<ICommandHandlingContext> configurator, 
             HashSet<Type> commandTypes, 
@@ -90,7 +93,7 @@ namespace CqrsVibe.Commands.Pipeline
         /// <param name="configurator">Commands pipeline configurator</param>
         /// <param name="commandTypes">Command types</param>
         /// <param name="configure">Delegate for configure pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="configure"/> or <see cref="commandTypes"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <sparamref name="configure"/> or <paramref name="commandTypes"/> is null</exception>
         public static void UseForCommands(
             this IPipeConfigurator<ICommandHandlingContext> configurator, 
             IEnumerable<Type> commandTypes, 

@@ -25,7 +25,7 @@ namespace CqrsVibe.Queries
         /// </summary>
         /// <param name="resolverAccessor">Dependency resolver accessor</param>
         /// <param name="configurePipeline">Delegate for configure query pipeline</param>
-        /// <exception cref="ArgumentNullException">Thrown when <see cref="resolverAccessor"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="resolverAccessor"/> is null</exception>
         public QueryService(
             IDependencyResolverAccessor resolverAccessor,
             Action<IPipeConfigurator<IQueryHandlingContext>> configurePipeline = null)
@@ -74,6 +74,7 @@ namespace CqrsVibe.Queries
             return ((Task<TResult>) context.ResultTask).Result;
         }
 
+        /// <inheritdoc />
         public void Probe(ProbeContext context)
         {
             var scope = context.CreateScope("queryService");

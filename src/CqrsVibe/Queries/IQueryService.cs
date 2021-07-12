@@ -4,6 +4,9 @@ using GreenPipes;
 
 namespace CqrsVibe.Queries
 {
+    /// <summary>
+    /// Query service
+    /// </summary>
     public interface IQueryService : IProbeSite
     {
         /// <summary>

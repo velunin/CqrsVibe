@@ -6,7 +6,9 @@
     	<RepositoryType>git</RepositoryType>
     	<RepositoryUrl>https://github.com/velunin/CqrsVibe</RepositoryUrl>
     	<PackageTags>CQRS;Mediator;Commands;Queries</PackageTags>
+        <PackageDescription>Add FluentValidation support to CqrsVibe</PackageDescription>
     	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

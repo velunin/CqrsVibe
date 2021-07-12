@@ -45,26 +45,13 @@ namespace CqrsVibe
             var lambdaContextParameter = Expression.Parameter(typeof(TContext));
             var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken));
 
-            var handlerInstance = Expression.Variable(handlerInterface, "handler");
-            var concreteContext = Expression.Variable(contextType, "context");
-
-            var block = Expression.Block(
-                new[] {handlerInstance, concreteContext},
-                Expression.Assign(
-                    handlerInstance,
-                    Expression.Convert(lambdaHandlerParameter, handlerInterface)),
-                Expression.Assign(
-                    concreteContext,
-                    Expression.Convert(lambdaContextParameter, contextType)),
-                Expression.Call(
-                    handlerInstance,
-                    handleMethod,
-                    concreteContext,
-                    cancellationTokenParameter));
-
             var lambda =
                 Expression.Lambda<Func<object, TContext, CancellationToken, Task>>(
-                    block,
+                    Expression.Call(
+                        Expression.Convert(lambdaHandlerParameter, handlerInterface),
+                        handleMethod,
+                        Expression.Convert(lambdaContextParameter, contextType),
+                        cancellationTokenParameter),
                     lambdaHandlerParameter,
                     lambdaContextParameter,
                     cancellationTokenParameter);

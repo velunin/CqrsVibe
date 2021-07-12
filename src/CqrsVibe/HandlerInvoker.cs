@@ -29,7 +29,7 @@ namespace CqrsVibe
         public Type HandlerInterface { get; }
 
         /// <summary>
-        /// Invoke 'HandleAsync' method of <see cref="handlerInstance"/>
+        /// Invoke 'HandleAsync' method of <paramref name="handlerInstance"/>
         /// </summary>
         /// <param name="handlerInstance">Instance of handler</param>
         /// <param name="context">Handling context</param>

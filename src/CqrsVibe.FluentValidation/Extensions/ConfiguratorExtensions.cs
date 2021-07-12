@@ -4,6 +4,9 @@ using GreenPipes;
 
 namespace CqrsVibe.FluentValidation.Extensions
 {
+    /// <summary>
+    /// Configurator extensions
+    /// </summary>
     public static class ConfiguratorExtensions
     {
         /// <summary>

@@ -15,6 +15,10 @@ namespace CqrsVibe.Events.Pipeline
         object Event { get; }
     }
 
+    /// <summary>
+    /// Base interface of event handling context
+    /// </summary>
+    /// <typeparam name="TEvent"></typeparam>
     public interface IEventHandlingContext<out TEvent> : IEventHandlingContext
     {
         /// <summary>

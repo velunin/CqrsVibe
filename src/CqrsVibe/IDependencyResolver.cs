@@ -13,10 +13,26 @@ namespace CqrsVibe
     /// </summary>
     public interface IDependencyResolver
     {
+        /// <summary>
+        /// Get a service
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         object ResolveService(Type type);
 
+        /// <summary>
+        /// Try to get a service
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
         bool TryResolveService(Type type, out object service);
 
+        /// <summary>
+        /// Get services
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         IEnumerable<object> ResolveServices(Type type);
     }
 
@@ -25,6 +41,9 @@ namespace CqrsVibe
     /// </summary>
     public interface IDependencyResolverAccessor
     {
+        /// <summary>
+        /// Current resolver for current asynchronous control flow
+        /// </summary>
         IDependencyResolver Current { get; set; }
     }
 
@@ -46,8 +65,17 @@ namespace CqrsVibe
         }
     }
 
-    public static class DependencyResolverExtension
+    /// <summary>
+    /// Dependency resolver extensions
+    /// </summary>
+    public static class DependencyResolverExtensions
     {
+        /// <summary>
+        /// Resolve service
+        /// </summary>
+        /// <param name="resolver"></param>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
         public static TService ResolveService<TService>(this IDependencyResolver resolver) where TService : class
         {
             var service = resolver.ResolveService(typeof(TService)) as TService;

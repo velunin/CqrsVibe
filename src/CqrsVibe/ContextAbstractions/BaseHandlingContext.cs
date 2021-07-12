@@ -3,7 +3,7 @@ using GreenPipes;
 
 namespace CqrsVibe.ContextAbstractions
 {
-    public abstract class BaseHandlingContext : BasePipeContext, IHandlingContext
+    internal abstract class BaseHandlingContext : BasePipeContext, IHandlingContext
     {
         protected BaseHandlingContext(CancellationToken cancellationToken) : base(cancellationToken)
         {

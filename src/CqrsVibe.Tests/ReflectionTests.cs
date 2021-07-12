@@ -63,12 +63,7 @@ namespace CqrsVibe.Tests
         {
             var middlewareExecuted = false;
 
-            SetUpMiddleware();
-
-            var scopeFactory = Get<IServiceScopeFactory>();
-            using var scope = scopeFactory.CreateScope();
-
-            scope.ServiceProvider.SetToHandlerResolverAccessor();
+            using var serviceScope = SetUpScope();
 
             var pipe = Pipe.New<ICommandHandlingContext>(cfg =>
             {
@@ -88,7 +83,7 @@ namespace CqrsVibe.Tests
 
             Assert.IsTrue(middlewareExecuted);
 
-            void SetUpMiddleware()
+            IServiceScope SetUpScope()
             {
                 Services.AddScoped(typeof(ScopedService));
 
@@ -102,6 +97,13 @@ namespace CqrsVibe.Tests
                     .Returns(Task.CompletedTask);
 
                 Services.AddSingleton(middlewareMock.Object);
+
+                var scopeFactory = Get<IServiceScopeFactory>();
+                var scope = scopeFactory.CreateScope();
+
+                scope.ServiceProvider.SetAsCurrentResolver();
+
+                return scope;
             }
         }
 

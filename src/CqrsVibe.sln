@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CqrsVibe.FluentValidation",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CqrsVibe.AspNetCore", "CqrsVibe.AspNetCore\CqrsVibe.AspNetCore.csproj", "{974C5278-A257-442B-9A66-78196EEA321E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{78240FC0-CA07-4847-A30F-E931FE4BE406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GettingStartedApp", "..\samples\GettingStartedApp\GettingStartedApp.csproj", "{47C4F569-F458-49E5-BE80-595179697EA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,12 @@ Global
 		{974C5278-A257-442B-9A66-78196EEA321E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{974C5278-A257-442B-9A66-78196EEA321E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{974C5278-A257-442B-9A66-78196EEA321E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47C4F569-F458-49E5-BE80-595179697EA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47C4F569-F458-49E5-BE80-595179697EA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47C4F569-F458-49E5-BE80-595179697EA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47C4F569-F458-49E5-BE80-595179697EA7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{47C4F569-F458-49E5-BE80-595179697EA7} = {78240FC0-CA07-4847-A30F-E931FE4BE406}
 	EndGlobalSection
 EndGlobal

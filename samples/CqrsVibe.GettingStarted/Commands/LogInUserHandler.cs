@@ -18,7 +18,7 @@ namespace GettingStartedApp.Commands
         }
 
         public Task HandleAsync(
-            ICommandHandlingContext<LogInUser> context, 
+            ICommandHandlingContext<LogInUser> context,
             CancellationToken cancellationToken = default)
         {
             ExecutionContext.CurrentUser = new User
@@ -31,7 +31,7 @@ namespace GettingStartedApp.Commands
                     ExecutionContext.CurrentUser.Name, 
                     ExecutionContext.CurrentUser.LoggedInAt),
                 cancellationToken);
-            
+
             return Task.CompletedTask;
         }
     }

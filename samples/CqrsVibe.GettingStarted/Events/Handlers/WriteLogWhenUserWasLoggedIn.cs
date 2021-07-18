@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using CqrsVibe.Events;
 using CqrsVibe.Events.Pipeline;
 
-namespace GettingStartedApp.Events
+namespace GettingStartedApp.Events.Handlers
 {
-    public class UserWasLoggedInHandler : IEventHandler<UserWasLoggedIn>
+    public class WriteLogWhenUserWasLoggedIn : IEventHandler<UserWasLoggedIn>
     {
         public async Task HandleAsync(
             IEventHandlingContext<UserWasLoggedIn> context, 

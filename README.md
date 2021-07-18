@@ -4,8 +4,47 @@
 [![nuget version](https://img.shields.io/nuget/v/CqrsVibe?label=nuget)](https://www.nuget.org/packages/CqrsVibe)
 ![license](https://img.shields.io/github/license/velunin/cqrsvibe)  
 
-CqrsVibe is an implementation of CQRS with pipelines via GreenPipes
+CqrsVibe is an implementation of CQRS with pipelines via [GreenPipes](https://github.com/phatboyg/GreenPipes)
 
+## Getting started
+Install [CqrsVibe package with Microsoft DI](https://www.nuget.org/packages/CqrsVibe.MicrosoftDependencyInjection/) abstractions support
+
+```Install-Package CqrsVibe.MicrosoftDependencyInjection``` 
+
+Register and configure CqrsVibe services:
+```c#
+services.AddCqrsVibe(options =>
+{
+    options.CommandsCfg = (provider, cfg) =>
+    {
+        //Commands handling pipeline configuration
+        cfg.UseInlineFilter(async (context, next) =>
+        {
+            //Pre-processing logic
+
+            await next.Send(context);
+
+            //Post-processing logic
+        });
+    };
+    options.QueriesCfg = (provider, cfg) =>
+    {
+        //Queries handling pipeline configuration
+    };
+    options.EventsCfg = (provider, cfg) =>
+    {
+        //Events handling pipeline configuration
+    };
+});
+```
+Register handlers:
+```c#
+services.AddCqrsVibeHandlers(
+    fromAssemblies:new []
+    {
+        typeof(SomeCommand).Assembly
+    });
+```
 ## Usage
 ### Commands processing
 Use `ProcessAsync` method of `ICommandProcessor` for performing command
@@ -75,3 +114,5 @@ public class SomeQueryHandler : IQueryHandler<SomeQuery, string>
     }
 }
 ```
+
+More usage examples: https://github.com/velunin/CqrsVibe/tree/master/samples

@@ -15,6 +15,6 @@ namespace CqrsVibe.Events
         /// </summary>
         /// <param name="context">Event handling context</param>
         /// <param name="cancellationToken"></param>
-        Task HandleAsync(IEventHandlingContext<TEvent> context, CancellationToken cancellationToken = default);
+        Task HandleAsync(IEventHandlingContext<TEvent> context, CancellationToken cancellationToken);
     }
 }

@@ -17,6 +17,6 @@ namespace CqrsVibe.Queries
         /// <param name="context">Query handling context</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Query result</returns>
-        Task<TResult> HandleAsync(IQueryHandlingContext<TQuery> context, CancellationToken cancellationToken = default);
+        Task<TResult> HandleAsync(IQueryHandlingContext<TQuery> context, CancellationToken cancellationToken);
     }
 }

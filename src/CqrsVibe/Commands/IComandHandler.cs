@@ -15,7 +15,7 @@ namespace CqrsVibe.Commands
         /// </summary>
         /// <param name="context">Command context</param>
         /// <param name="cancellationToken"></param>
-        Task HandleAsync(ICommandHandlingContext<TCommand> context, CancellationToken cancellationToken = default);
+        Task HandleAsync(ICommandHandlingContext<TCommand> context, CancellationToken cancellationToken);
     }
 
     /// <summary>

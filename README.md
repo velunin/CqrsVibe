@@ -1,6 +1,6 @@
 # CqrsVibe 
 
-![ci](https://img.shields.io/github/workflow/status/velunin/cqrsvibe/build)
+[![build](https://github.com/velunin/CqrsVibe/actions/workflows/ci.yml/badge.svg)](https://github.com/velunin/CqrsVibe/actions/workflows/ci.yml)
 [![nuget version](https://img.shields.io/nuget/v/CqrsVibe?label=nuget)](https://www.nuget.org/packages/CqrsVibe)
 ![license](https://img.shields.io/github/license/velunin/cqrsvibe)  
 

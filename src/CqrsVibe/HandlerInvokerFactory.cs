@@ -19,16 +19,10 @@ namespace CqrsVibe
 
         public static HandlerInvoker<TContext> GetOrCreate(Type contextType, Type handlerType)
         {
-            if (!HandlerInvokersCache.TryGetValue(contextType, out var handlerInvoker))
-            {
-                handlerInvoker = CreateHandlerInvoker(
-                    contextType,
-                    handlerType);
-                
-                HandlerInvokersCache.TryAdd(contextType, handlerInvoker);
-            }
-
-            return handlerInvoker;
+            return HandlerInvokersCache.GetOrAdd(contextType, (contextTypeArg, handlerTypeArg) => CreateHandlerInvoker(
+                    contextTypeArg,
+                    handlerTypeArg),
+                handlerType);
         }
 
         private static HandlerInvoker<TContext> CreateHandlerInvoker(
@@ -38,7 +32,8 @@ namespace CqrsVibe
             var handleMethod = handlerInterface.GetMethod("HandleAsync", BindingFlags.Instance | BindingFlags.Public);
             if (handleMethod == null)
             {
-                throw new InvalidOperationException($"{handlerInterface.FullName} does not contain a 'HandleAsync' method");
+                throw new InvalidOperationException(
+                    $"{handlerInterface.FullName} does not contain a 'HandleAsync' method");
             }
 
             var lambdaHandlerParameter = Expression.Parameter(typeof(object));

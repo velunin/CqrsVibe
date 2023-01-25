@@ -27,20 +27,20 @@ namespace CqrsVibe.Events
         /// <param name="configurePipeline">Delegate for configure event handling pipeline</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="resolverAccessor"/> is null</exception>
         public EventDispatcher(
-            IDependencyResolverAccessor resolverAccessor, 
+            IDependencyResolverAccessor resolverAccessor,
             Action<IPipeConfigurator<IEventHandlingContext>> configurePipeline = null)
         {
             if (resolverAccessor == null)
             {
                 throw new ArgumentNullException(nameof(resolverAccessor));
             }
-            
+
             _eventHandlePipe = Pipe.New<IEventHandlingContext>(pipeConfigurator =>
             {
                 pipeConfigurator.UseDependencyResolver(resolverAccessor);
-                
+
                 configurePipeline?.Invoke(pipeConfigurator);
-                
+
                 pipeConfigurator.UseHandleEvent(resolverAccessor);
             });
         }
@@ -59,12 +59,10 @@ namespace CqrsVibe.Events
             }
 
             var eventType = @event.GetType();
-            
-            if (!_eventHandlerTypesCache.TryGetValue(eventType, out var eventHandlerType))
-            {
-                eventHandlerType = typeof(IEventHandler<>).MakeGenericType(eventType);
-                _eventHandlerTypesCache.TryAdd(eventType, eventHandlerType);
-            }
+
+            var eventHandlerType = _eventHandlerTypesCache.GetOrAdd(
+                eventType,
+                eventTypeArg => typeof(IEventHandler<>).MakeGenericType(eventTypeArg));
 
             var contextConstructor = EventContextCtorFactory.GetOrCreate(eventType);
             var context = contextConstructor.Construct(@event, eventHandlerType, cancellationToken);
@@ -88,13 +86,10 @@ namespace CqrsVibe.Events
 
             public static EventContextConstructor GetOrCreate(Type eventType)
             {
-                if (!ContextConstructorsCache.TryGetValue(eventType, out var contextConstructor))
-                {
-                    contextConstructor = EventContextConstructor.Compile(eventType);
-                    ContextConstructorsCache.TryAdd(eventType, contextConstructor);
-                }
-
-                return contextConstructor;
+                return ContextConstructorsCache.GetOrAdd(
+                    eventType,
+                    // ReSharper disable once ConvertClosureToMethodGroup
+                    eventTypeArg => EventContextConstructor.Compile(eventTypeArg));
             }
         }
 
@@ -113,7 +108,7 @@ namespace CqrsVibe.Events
             public Type ContextType { get; }
 
             public IEventHandlingContext Construct(
-                object @event, 
+                object @event,
                 Type handlerType,
                 CancellationToken cancellationToken)
             {
@@ -128,13 +123,13 @@ namespace CqrsVibe.Events
             }
 
             private static Func<object, Type, CancellationToken, IEventHandlingContext> CompileCtorInvoker(
-                Type eventType, 
+                Type eventType,
                 Type contextType)
             {
                 var contextConstructorInfo = contextType.GetConstructor(
                     BindingFlags.Public | BindingFlags.Instance,
                     null,
-                    new[] {eventType, typeof(Type), typeof(CancellationToken)},
+                    new[] { eventType, typeof(Type), typeof(CancellationToken) },
                     null);
 
                 var eventParameter = Expression.Parameter(typeof(object), "@event");
@@ -143,7 +138,7 @@ namespace CqrsVibe.Events
 
                 var concreteEventInstance = Expression.Variable(eventType, "concreteEvent");
 
-                var block = Expression.Block(new[] {concreteEventInstance},
+                var block = Expression.Block(new[] { concreteEventInstance },
                     Expression.Assign(concreteEventInstance, Expression.Convert(eventParameter, eventType)),
                     Expression.New(contextConstructorInfo!, concreteEventInstance, handlerInterfaceParameter,
                         cancellationTokenParameter));

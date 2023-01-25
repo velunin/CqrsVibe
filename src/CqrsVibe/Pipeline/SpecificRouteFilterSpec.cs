@@ -29,7 +29,7 @@ namespace CqrsVibe.Pipeline
 
         public void Apply(IPipeBuilder<TOriginalContext> builder)
         {
-            builder.AddFilter(new SpecificRouteFilter<TRouteContext,TOriginalContext>(_filter, _configureRoutePipe));
+            builder.AddFilter(new SpecificRouteFilter<TRouteContext, TOriginalContext>(_filter, _configureRoutePipe));
         }
 
         public IEnumerable<ValidationResult> Validate()
@@ -65,14 +65,14 @@ namespace CqrsVibe.Pipeline
                 var locationKey = new LocationKey(
                     next,
                     typeof(TRouteContext));
-                    
-                if (!PipesCache.TryGetValue(locationKey, out var pipeEntry))
-                {
-                    pipeEntry = CreateRoutePipe(next);
-                    PipesCache.TryAdd(locationKey, pipeEntry);
-                }
 
-                return ((IPipe<TRouteContext>)pipeEntry).Send((TRouteContext) context);
+                var pipeEntry = PipesCache.GetOrAdd(locationKey,
+                    (locationKeyArg, configureRoutePipe) =>
+                        CreateRoutePipe(locationKeyArg.NextFilter, configureRoutePipe),
+                    _configureRoutePipe);
+
+
+                return ((IPipe<TRouteContext>)pipeEntry).Send((TRouteContext)context);
             }
 
             return next.Send(context);
@@ -87,14 +87,14 @@ namespace CqrsVibe.Pipeline
             fakePipe.Probe(scope.CreateScope("pipeline"));
         }
 
-        private IPipe<TRouteContext> CreateRoutePipe(
-            IPipe<TOriginalContext> next)
+        private static IPipe<TRouteContext> CreateRoutePipe(
+            object next, Action<IPipeConfigurator<TRouteContext>> configureRoutePipe)
         {
             var routeConfigurator = new PipeConfigurator<TRouteContext>();
-            _configureRoutePipe(routeConfigurator);
+            configureRoutePipe(routeConfigurator);
 
             var connector = new TeeFilter<TRouteContext>();
-            connector.ConnectPipe(next);
+            connector.ConnectPipe((IPipe<TRouteContext>)next);
 
             routeConfigurator.UseFilter(connector);
 
@@ -105,11 +105,14 @@ namespace CqrsVibe.Pipeline
         {
             public LocationKey(object nextFilter, Type contextType)
             {
+                NextFilter = nextFilter;
                 NextFilterReference = RuntimeHelpers.GetHashCode(nextFilter);
                 ContextType = contextType;
             }
 
             private int NextFilterReference { get; }
+
+            public object NextFilter { get; }
 
             private Type ContextType { get; }
 

@@ -28,7 +28,7 @@ namespace CqrsVibe.Commands
         /// <param name="configurePipeline">Delegate for configure command pipeline</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="resolverAccessor"/> is null</exception>
         public CommandProcessor(
-            IDependencyResolverAccessor resolverAccessor, 
+            IDependencyResolverAccessor resolverAccessor,
             Action<IPipeConfigurator<ICommandHandlingContext>> configurePipeline = null)
         {
             if (resolverAccessor == null)
@@ -58,14 +58,12 @@ namespace CqrsVibe.Commands
             {
                 throw new ArgumentNullException(nameof(command));
             }
-            
+
             var commandType = command.GetType();
-            
-            if (!_commandHandlerTypesCache.TryGetValue(commandType, out var commandHandlerType))
-            {
-                commandHandlerType = typeof(ICommandHandler<>).MakeGenericType(commandType);
-                _commandHandlerTypesCache.TryAdd(commandType, commandHandlerType);
-            }
+
+            var commandHandlerType = _commandHandlerTypesCache.GetOrAdd(
+                commandType,
+                commandTypeArg => typeof(ICommandHandler<>).MakeGenericType(commandTypeArg));
 
             var contextConstructor = CommandContextCtorFactory.GetOrCreate(commandType, null);
             var context = contextConstructor.Construct(command, commandHandlerType, cancellationToken);
@@ -89,20 +87,18 @@ namespace CqrsVibe.Commands
             }
 
             var commandType = command.GetType();
-            
-            if (!_commandHandlerTypesCache.TryGetValue(commandType, out var commandHandlerType))
-            {
-                commandHandlerType = typeof(ICommandHandler<,>).MakeGenericType(commandType, typeof(TResult));
-                _commandHandlerTypesCache.TryAdd(commandType, commandHandlerType);
-            }
+
+            var commandHandlerType = _commandHandlerTypesCache.GetOrAdd(
+                commandType,
+                commandTypeArg => typeof(ICommandHandler<,>).MakeGenericType(commandTypeArg, typeof(TResult)));
 
             var contextConstructor = CommandContextCtorFactory.GetOrCreate(commandType, typeof(TResult));
             var context = contextConstructor.Construct(command, commandHandlerType, cancellationToken);
 
             await _commandPipe.Send(context);
-            var resultingContext = (IResultingHandlingContext) context;
-            
-            return ((Task<TResult>) resultingContext.ResultTask).Result;
+            var resultingContext = (IResultingHandlingContext)context;
+
+            return ((Task<TResult>)resultingContext.ResultTask).Result;
         }
 
         /// <inheritdoc />
@@ -124,13 +120,9 @@ namespace CqrsVibe.Commands
 
             public static CommandContextConstructor GetOrCreate(Type commandType, Type resultType)
             {
-                if (!ContextConstructorsCache.TryGetValue(commandType, out var contextConstructor))
-                {
-                    contextConstructor = CommandContextConstructor.Compile(commandType, resultType);
-                    ContextConstructorsCache.TryAdd(commandType, contextConstructor);
-                }
-
-                return contextConstructor;
+                return ContextConstructorsCache.GetOrAdd(commandType,
+                    (commandTypeArg, resultTypeArg) => CommandContextConstructor.Compile(commandTypeArg, resultTypeArg),
+                    resultType);
             }
         }
 
@@ -152,7 +144,7 @@ namespace CqrsVibe.Commands
             public Type ContextType { get; }
 
             public ICommandHandlingContext Construct(
-                ICommand command, 
+                ICommand command,
                 Type handlerType,
                 CancellationToken cancellationToken)
             {
@@ -169,13 +161,13 @@ namespace CqrsVibe.Commands
             }
 
             private static Func<ICommand, Type, CancellationToken, ICommandHandlingContext> CompileCtorInvoker(
-                Type commandType, 
+                Type commandType,
                 Type contextType)
             {
                 var contextConstructorInfo = contextType.GetConstructor(
                     BindingFlags.Public | BindingFlags.Instance,
                     null,
-                    new[] {commandType, typeof(Type), typeof(CancellationToken)},
+                    new[] { commandType, typeof(Type), typeof(CancellationToken) },
                     null);
 
                 var commandLambdaParameter = Expression.Parameter(typeof(ICommand), "command");
@@ -184,7 +176,7 @@ namespace CqrsVibe.Commands
 
                 var concreteCommandInstance = Expression.Variable(commandType, "concreteCommand");
 
-                var block = Expression.Block(new[] {concreteCommandInstance},
+                var block = Expression.Block(new[] { concreteCommandInstance },
                     Expression.Assign(concreteCommandInstance, Expression.Convert(commandLambdaParameter, commandType)),
                     Expression.New(contextConstructorInfo!, concreteCommandInstance, handlerInterfaceParameter,
                         cancellationTokenParameter));
